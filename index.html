@@ -383,10 +383,6 @@
         <div class="filter-title">Leather</div>
         <div id="leatherFilters"></div>
       </div>
-      <div class="filter-group">
-        <div class="filter-title">Size</div>
-        <div id="sizeFilters"></div>
-      </div>
       <button class="clear-all" id="clearAll">Clear all filters</button>
     </aside>
 
@@ -460,9 +456,8 @@ const straps = [
 
 const colors = [...new Set(straps.map(s=>s.color))];
 const leathers = [...new Set(straps.map(s=>s.leather))];
-const sizes = [...new Set(straps.map(s=>s.size))].sort();
 
-const active = {color:new Set(), leather:new Set(), size:new Set()};
+const active = {color:new Set(), leather:new Set()};
 
 function buildFilterGroup(containerId, values, category, withSwatch){
   const container = document.getElementById(containerId);
@@ -476,7 +471,6 @@ function buildFilterGroup(containerId, values, category, withSwatch){
 }
 buildFilterGroup('colorFilters', colors, 'color', true);
 buildFilterGroup('leatherFilters', leathers, 'leather', false);
-buildFilterGroup('sizeFilters', sizes, 'size', false);
 
 document.querySelectorAll('.filter-option input').forEach(cb=>{
   cb.addEventListener('change', e=>{
@@ -488,7 +482,7 @@ document.querySelectorAll('.filter-option input').forEach(cb=>{
 
 document.getElementById('clearAll').addEventListener('click', ()=>{
   document.querySelectorAll('.filter-option input').forEach(cb=>cb.checked=false);
-  active.color.clear(); active.leather.clear(); active.size.clear();
+  active.color.clear(); active.leather.clear();
   render();
 });
 
@@ -511,8 +505,7 @@ function render(){
   const grid = document.getElementById('strapGrid');
   const filtered = straps.filter(s=>
     (active.color.size===0 || active.color.has(s.color)) &&
-    (active.leather.size===0 || active.leather.has(s.leather)) &&
-    (active.size.size===0 || active.size.has(s.size))
+    (active.leather.size===0 || active.leather.has(s.leather))
   );
   document.getElementById('resultCount').textContent = `${String(filtered.length).padStart(2,'0')} / ${straps.length} straps`;
   grid.innerHTML = '';
