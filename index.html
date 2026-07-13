@@ -189,7 +189,10 @@
     transition:background 0.2s ease;
   }
   .strap-card:hover{background:var(--paper-2);}
-  .strap-illustration{height:112px; margin-bottom:20px;}
+  .strap-photo{
+    width:100%; height:160px; object-fit:contain; object-position:center;
+    background:var(--paper-2); border:1px solid var(--line-soft); margin-bottom:20px;
+  }
   .strap-name{font-size:1.1rem; font-weight:400;}
   .strap-meta{display:flex; gap:8px; flex-wrap:wrap; margin-top:10px;}
   .tag{
@@ -235,6 +238,7 @@
   }
   .product-visual svg{width:100%; max-width:340px;}
   .product-visual .watch-face-svg{width:100%; max-width:300px; margin:0;}
+  .product-visual img{width:100%; max-width:380px; object-fit:contain;}
   .product .eyebrow{display:block; margin-bottom:16px;}
   .product h2{font-size:clamp(1.9rem,3.2vw,2.7rem); margin-bottom:10px;}
   .product-sub{color:var(--blue); font-style:italic; margin-bottom:34px; line-height:1.5;}
@@ -245,13 +249,6 @@
     color:var(--muted); margin-bottom:13px; display:flex; justify-content:space-between; gap:12px;
   }
   .opt-label .opt-value{color:var(--ink); letter-spacing:0.06em;}
-  .swatch-row{display:flex; gap:10px; flex-wrap:wrap;}
-  .swatch-btn{
-    width:34px; height:34px; border-radius:50%; cursor:pointer; padding:0;
-    border:1px solid var(--line); transition:transform 0.15s ease;
-  }
-  .swatch-btn:hover{transform:scale(1.09);}
-  .swatch-btn.sel{box-shadow:0 0 0 2px var(--paper), 0 0 0 3.5px var(--ink);}
   .pill-row{display:flex; gap:8px; flex-wrap:wrap;}
   .pill{
     border:1px solid var(--line); background:none; color:var(--ink);
@@ -459,7 +456,7 @@
       <span class="eyebrow">Strap Library</span>
       <h2>Change the mood, keep the watch.</h2>
     </div>
-    <p>Filter by color, leather, and lug size to find the one that fits.</p>
+    <p>Filter by color and leather to find the one that fits. Each strap is handmade to order — one of a kind.</p>
   </div>
 
   <div class="straps-layout">
@@ -536,22 +533,40 @@ setInterval(tickClock, 1000);
 
 // ---------- STRAP DATA ----------
 const straps = [
-  {name:'Cognac Classic', color:'Cognac', hex:'#a3673a', leather:'Cow', price:89},
-  {name:'Onyx Standard', color:'Black', hex:'#1c1b1a', leather:'Cow', price:89},
-  {name:'Chestnut Ostrich', color:'Chestnut', hex:'#6f4028', leather:'Ostrich', price:129},
-  {name:'Deep Sea Shark', color:'Navy', hex:'#26344a', leather:'Shark', price:139},
-  {name:'Olive Lizard', color:'Olive', hex:'#5b6248', leather:'Lizard', price:149},
-  {name:'Onyx Crocodile', color:'Black', hex:'#1c1b1a', leather:'Crocodile', price:210},
-  {name:'Cognac Ostrich', color:'Cognac', hex:'#a3673a', leather:'Ostrich', price:129},
-  {name:'Chestnut Crocodile', color:'Chestnut', hex:'#6f4028', leather:'Crocodile', price:210},
-  {name:'Navy Classic', color:'Navy', hex:'#26344a', leather:'Cow', price:89},
-  {name:'Olive Snake', color:'Olive', hex:'#5b6248', leather:'Snake', price:135},
-  {name:'Cognac Stingray', color:'Cognac', hex:'#a3673a', leather:'Stingray', price:165},
-  {name:'Onyx Snake', color:'Black', hex:'#1c1b1a', leather:'Snake', price:135},
+  {
+    name:'Black Stingray',
+    color:'Black', hex:'#1c1b1a',
+    leather:'Stingray',
+    price:41,
+    img:'images/straps/black-stingray.png',
+    widths:['20mm','22mm'],
+    desc:'Handmade genuine stingray leather strap with a hand-painted burnt-orange centre stripe. Comes fitted with its buckle.',
+    note:'Last one',
+  },
+  {
+    name:'Brown Stingray',
+    color:'Brown', hex:'#5b4033',
+    leather:'Stingray',
+    price:39,
+    img:'images/straps/brown-stingray.png',
+    widths:['18mm','20mm'],
+    desc:'Genuine stingray skin in a rich, natural brown. Hand-finished with a polished steel buckle.',
+    note:'Last one',
+  },
+  {
+    name:'Dark Red Lizard',
+    color:'Dark Red', hex:'#5e1f24',
+    leather:'Lizard',
+    price:39,
+    img:'images/straps/darkred-lizard.png',
+    widths:['16mm','17mm','18mm','19mm','20mm','21mm','22mm','24mm','26mm'],
+    desc:'Genuine lizard leather in a deep, dark red. Handmade to order across a wide range of widths.',
+    note:'Last one',
+  },
 ];
 
 const colors = [...new Set(straps.map(s=>s.color))];
-const leathers = ['Ostrich','Lizard','Crocodile','Snake','Shark','Stingray','Cow'];
+const leathers = [...new Set(straps.map(s=>s.leather))];
 
 const active = {color:new Set(), leather:new Set()};
 
@@ -582,21 +597,6 @@ document.getElementById('clearAll').addEventListener('click', ()=>{
   render();
 });
 
-function strapSvg(hex, leather){
-  const texture = leather === 'Suede' ? 0.6 : leather === 'Shell Cordovan' ? 1 : 0.88;
-  return `
-  <svg class="strap-illustration" viewBox="0 0 220 110">
-    <rect x="30" y="10" width="160" height="90" rx="14" fill="${hex}" opacity="${texture}"/>
-    <rect x="30" y="10" width="160" height="90" rx="14" fill="none" stroke="rgba(22,21,15,0.28)" stroke-width="1.2" stroke-dasharray="4 3"/>
-    <circle cx="52" cy="22" r="2.2" fill="rgba(250,249,246,0.65)"/>
-    <circle cx="52" cy="88" r="2.2" fill="rgba(250,249,246,0.65)"/>
-    <circle cx="168" cy="22" r="2.2" fill="rgba(250,249,246,0.65)"/>
-    <circle cx="168" cy="88" r="2.2" fill="rgba(250,249,246,0.65)"/>
-    <rect x="8" y="42" width="26" height="26" rx="5" fill="#d9d6cd" stroke="#16150f" stroke-width="1.2"/>
-    <rect x="186" y="42" width="26" height="26" rx="5" fill="#d9d6cd" stroke="#16150f" stroke-width="1.2"/>
-  </svg>`;
-}
-
 function render(){
   const grid = document.getElementById('strapGrid');
   const filtered = straps.filter(s=>
@@ -613,10 +613,11 @@ function render(){
     const card = document.createElement('div');
     card.className = 'strap-card';
     card.innerHTML = `
-      ${strapSvg(s.hex, s.leather)}
+      <img class="strap-photo" src="${s.img}" alt="${s.name} watch strap">
       <div class="strap-name">${s.name}</div>
       <div class="strap-meta">
         <span class="tag">${s.leather}</span>
+        ${s.note ? `<span class="tag">${s.note}</span>` : ''}
       </div>
       <div class="strap-bottom">
         <span class="strap-price">$${s.price}</span>
@@ -632,18 +633,7 @@ render();
 // NOTE: change this to your real contact address so enquiries reach you.
 const OWNER_EMAIL = 'jaydenlau76@gmail.com';
 
-const colorOptions = [
-  {name:'Cognac', hex:'#a3673a'},
-  {name:'Black', hex:'#1c1b1a'},
-  {name:'Chestnut', hex:'#6f4028'},
-  {name:'Navy', hex:'#26344a'},
-  {name:'Olive', hex:'#5b6248'},
-  {name:'Tan', hex:'#c19a6b'},
-  {name:'Burgundy', hex:'#5e2a2a'},
-];
-const widthOptions = ['18mm','20mm','22mm','24mm'];
 const lengthOptions = ['Short','Regular','Long','Extra long'];
-const widthSurcharge = {'18mm':0,'20mm':0,'22mm':0,'24mm':5};
 const lengthSurcharge = {'Short':0,'Regular':0,'Long':8,'Extra long':15};
 
 let cart = [];
@@ -675,49 +665,24 @@ document.getElementById('overlayClose').addEventListener('click', closeOverlay);
 overlay.addEventListener('click', e=>{ if(e.target===overlay) closeOverlay(); });
 document.addEventListener('keydown', e=>{ if(e.key==='Escape' && overlay.classList.contains('open')) closeOverlay(); });
 
-function configStrapSvg(bandHex, loopHex){
-  return `
-  <svg viewBox="0 0 320 150" role="img" aria-label="Strap preview">
-    <rect x="34" y="58" width="252" height="38" rx="7" fill="${bandHex}"/>
-    <rect x="34" y="58" width="252" height="38" rx="7" fill="none" stroke="rgba(22,21,15,0.28)" stroke-width="1.2" stroke-dasharray="5 3"/>
-    <rect x="196" y="52" width="17" height="50" rx="3" fill="${loopHex}"/>
-    <rect x="220" y="52" width="13" height="50" rx="3" fill="${loopHex}" opacity="0.92"/>
-    <rect x="8" y="60" width="30" height="34" rx="6" fill="#cfccc2" stroke="#16150f" stroke-width="1.3"/>
-    <line x1="23" y1="60" x2="23" y2="94" stroke="#16150f" stroke-width="1.3"/>
-    <circle cx="250" cy="77" r="2.4" fill="rgba(250,249,246,0.65)"/>
-    <circle cx="262" cy="77" r="2.4" fill="rgba(250,249,246,0.65)"/>
-    <circle cx="274" cy="77" r="2.4" fill="rgba(250,249,246,0.65)"/>
-  </svg>`;
-}
-
 function openStrap(idx){
   const s = straps[idx];
-  const state = {strapColor:s.color, strapHex:s.hex, loopColor:s.color, loopHex:s.hex, width:'20mm', length:'Regular'};
-  const price = ()=> s.price + widthSurcharge[state.width] + lengthSurcharge[state.length];
-  const swatches = (cat)=> colorOptions.map(c=>
-    `<button class="swatch-btn ${state[cat]===c.name?'sel':''}" style="background:${c.hex}" data-cat="${cat}" data-name="${c.name}" data-hex="${c.hex}" title="${c.name}" aria-label="${c.name}"></button>`).join('');
+  const state = {width:s.widths[0], length:'Regular'};
+  const price = ()=> s.price + lengthSurcharge[state.length];
   const pills = (opts,cat)=> opts.map(o=>
     `<button class="pill ${state[cat]===o?'sel':''}" data-cat="${cat}" data-val="${o}">${o}</button>`).join('');
 
   openOverlay(`
     <div class="product">
-      <div class="product-visual" id="pv">${configStrapSvg(state.strapHex, state.loopHex)}</div>
+      <div class="product-visual"><img src="${s.img}" alt="${s.name} watch strap"></div>
       <div>
-        <span class="eyebrow">Strap · ${s.leather}</span>
+        <span class="eyebrow">Strap · ${s.leather}${s.note ? ' · ' + s.note : ''}</span>
         <h2>${s.name}</h2>
-        <div class="product-sub">Hand-cut ${s.leather.toLowerCase()} leather, made to order.</div>
+        <div class="product-sub">${s.desc}</div>
 
         <div class="opt-group">
-          <div class="opt-label">Strap colour <span class="opt-value" data-lbl="strapColor">${state.strapColor}</span></div>
-          <div class="swatch-row">${swatches('strapColor')}</div>
-        </div>
-        <div class="opt-group">
-          <div class="opt-label">Loop colour <span class="opt-value" data-lbl="loopColor">${state.loopColor}</span></div>
-          <div class="swatch-row">${swatches('loopColor')}</div>
-        </div>
-        <div class="opt-group">
           <div class="opt-label">Band width <span class="opt-value" data-lbl="width">${state.width}</span></div>
-          <div class="pill-row">${pills(widthOptions,'width')}</div>
+          <div class="pill-row">${pills(s.widths,'width')}</div>
         </div>
         <div class="opt-group">
           <div class="opt-label">Length <span class="opt-value" data-lbl="length">${state.length}</span></div>
@@ -725,30 +690,22 @@ function openStrap(idx){
         </div>
 
         <div class="product-price" data-price>$${price()}</div>
-        <p class="product-note">Made to order. No online checkout &mdash; add to your cart and send us an enquiry to confirm details, final price, and delivery.</p>
+        <p class="product-note">Handmade to order. No online checkout &mdash; add to your cart and send us an enquiry to confirm sizing, final price, and delivery to your location.</p>
         <button class="btn-add" data-addstrap>Add to cart</button>
       </div>
     </div>`);
 
   function refresh(){
-    overlayBody.querySelector('#pv').innerHTML = configStrapSvg(state.strapHex, state.loopHex);
     overlayBody.querySelectorAll('[data-lbl]').forEach(el=> el.textContent = state[el.dataset.lbl]);
     overlayBody.querySelector('[data-price]').textContent = '$'+price();
-    overlayBody.querySelectorAll('.swatch-btn').forEach(b=> b.classList.toggle('sel', state[b.dataset.cat]===b.dataset.name));
     overlayBody.querySelectorAll('.pill').forEach(b=> b.classList.toggle('sel', state[b.dataset.cat]===b.dataset.val));
   }
   overlayBody.onclick = e=>{
-    const sw = e.target.closest('.swatch-btn');
-    if(sw){
-      state[sw.dataset.cat] = sw.dataset.name;
-      state[sw.dataset.cat==='strapColor' ? 'strapHex' : 'loopHex'] = sw.dataset.hex;
-      refresh(); return;
-    }
     const pill = e.target.closest('.pill');
     if(pill){ state[pill.dataset.cat] = pill.dataset.val; refresh(); return; }
     if(e.target.closest('[data-addstrap]')){
       cart.push({type:'Strap', name:s.name, price:price(),
-        options:[`Leather: ${s.leather}`, `Strap: ${state.strapColor}`, `Loops: ${state.loopColor}`, `Width: ${state.width}`, `Length: ${state.length}`]});
+        options:[`Leather: ${s.leather}`, `Width: ${state.width}`, `Length: ${state.length}`]});
       saveCart(); openCart();
     }
   };
