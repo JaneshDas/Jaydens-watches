@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jayden's Watches</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#12161c;
+    --ink-2:#1b212b;
+    --bone:#ece6d8;
+    --bone-dim:#c9c2b1;
+    --brass:#c2984e;
+    --brass-bright:#e0b76b;
+    --steel:#3c4a5e;
+    --line: rgba(236,230,216,0.14);
+    --radius: 2px;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--ink);
+    color:var(--bone);
+    font-family:'Inter',sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3{
+    font-family:'Cormorant Garamond',serif;
+    font-weight:500;
+    letter-spacing:0.01em;
+    margin:0;
+  }
+  .mono{font-family:'Space Mono',monospace; letter-spacing:0.03em;}
+  a{color:inherit;}
+  img,svg{display:block;max-width:100%;}
+
+  /* ---------- NAV ---------- */
+  nav{
+    position:sticky; top:0; z-index:50;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:22px 6vw;
+    background:rgba(18,22,28,0.86);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line);
+  }
+  .brand{
+    font-family:'Cormorant Garamond',serif;
+    font-size:1.5rem;
+    letter-spacing:0.04em;
+    display:flex; align-items:baseline; gap:8px;
+  }
+  .brand em{
+    font-style:italic; color:var(--brass);
+  }
+  .navlinks{display:flex; gap:36px; font-size:0.82rem; letter-spacing:0.12em; text-transform:uppercase;}
+  .navlinks a{text-decoration:none; color:var(--bone-dim); position:relative; padding-bottom:4px;}
+  .navlinks a:hover{color:var(--brass-bright);}
+  .navlinks a:focus-visible, a:focus-visible, button:focus-visible, input:focus-visible{
+    outline:2px solid var(--brass-bright); outline-offset:3px;
+  }
+
+  /* ---------- HERO ---------- */
+  .hero{
+    display:grid;
+    grid-template-columns: 1.1fr 0.9fr;
+    align-items:center;
+    gap:40px;
+    padding:9vh 6vw 10vh;
+    border-bottom:1px solid var(--line);
+    overflow:hidden;
+  }
+  .hero-eyebrow{
+    font-size:0.75rem; letter-spacing:0.22em; text-transform:uppercase;
+    color:var(--brass); margin-bottom:22px; display:block;
+  }
+  .hero h1{
+    font-size:clamp(2.6rem, 5.2vw, 4.6rem);
+    line-height:1.03;
+    color:var(--bone);
+  }
+  .hero h1 i{color:var(--brass-bright); font-style:italic;}
+  .hero p{
+    max-width:440px;
+    margin-top:26px;
+    color:var(--bone-dim);
+    font-size:1.02rem;
+    line-height:1.65;
+  }
+  .hero-ctas{display:flex; gap:18px; margin-top:38px;}
+  .btn{
+    padding:14px 28px;
+    font-size:0.8rem;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    text-decoration:none;
+    border-radius:var(--radius);
+    cursor:pointer;
+    border:1px solid var(--brass);
+    transition:all 0.25s ease;
+    font-family:'Inter',sans-serif;
+    font-weight:500;
+  }
+  .btn-solid{background:var(--brass); color:var(--ink);}
+  .btn-solid:hover{background:var(--brass-bright); border-color:var(--brass-bright);}
+  .btn-ghost{background:transparent; color:var(--bone);}
+  .btn-ghost:hover{border-color:var(--bone); background:rgba(236,230,216,0.05);}
+
+  .hero-clock-wrap{display:flex; justify-content:center; align-items:center; position:relative;}
+  .hero-clock-wrap::before{
+    content:"";
+    position:absolute;
+    width:120%; height:120%;
+    background:radial-gradient(circle, rgba(194,152,78,0.14), transparent 65%);
+  }
+  #heroClock{width:min(78%, 380px); position:relative; z-index:2;}
+  .hand{transform-origin:200px 200px;}
+
+  /* ---------- SECTION SHELL ---------- */
+  section{padding:11vh 6vw;}
+  .section-head{
+    display:flex; justify-content:space-between; align-items:flex-end;
+    margin-bottom:56px; gap:24px; flex-wrap:wrap;
+    border-bottom:1px solid var(--line);
+    padding-bottom:28px;
+  }
+  .section-head .eyebrow{
+    font-size:0.75rem; letter-spacing:0.22em; text-transform:uppercase; color:var(--brass);
+    display:block; margin-bottom:10px;
+  }
+  .section-head h2{font-size:clamp(2rem,3.4vw,2.8rem);}
+  .section-head p{color:var(--bone-dim); max-width:420px; font-size:0.95rem; line-height:1.6;}
+
+  /* ---------- WATCHES ---------- */
+  #watches{background:var(--ink-2);}
+  .watch-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:2px;
+    background:var(--line);
+    border:1px solid var(--line);
+  }
+  .watch-card{
+    background:var(--ink-2);
+    padding:52px 44px;
+    display:flex; flex-direction:column; align-items:center; text-align:center;
+  }
+  .watch-face-svg{width:220px; margin-bottom:34px; filter:drop-shadow(0 20px 40px rgba(0,0,0,0.45));}
+  .watch-card h3{font-size:1.9rem; color:var(--bone);}
+  .watch-tagline{color:var(--brass); font-size:0.85rem; letter-spacing:0.06em; margin-top:6px; font-style:italic; font-family:'Cormorant Garamond',serif;}
+  .watch-specs{
+    margin-top:28px; width:100%; max-width:320px;
+    display:flex; flex-direction:column; gap:10px;
+  }
+  .spec-row{
+    display:flex; justify-content:space-between;
+    font-size:0.8rem; color:var(--bone-dim);
+    border-bottom:1px dashed var(--line);
+    padding-bottom:8px;
+  }
+  .spec-row span:last-child{color:var(--bone); font-family:'Space Mono',monospace;}
+  .watch-price{
+    margin-top:30px; font-family:'Space Mono',monospace; font-size:1.5rem; color:var(--brass-bright);
+  }
+  .watch-card .btn{margin-top:24px;}
+
+  /* ---------- STRAPS ---------- */
+  .straps-layout{
+    display:grid;
+    grid-template-columns:240px 1fr;
+    gap:56px;
+    align-items:start;
+  }
+  .filter-panel{
+    position:sticky; top:100px;
+    border:1px solid var(--line);
+    padding:26px 22px;
+    border-radius:var(--radius);
+  }
+  .filter-group{margin-bottom:30px;}
+  .filter-group:last-child{margin-bottom:0;}
+  .filter-title{
+    font-size:0.72rem; letter-spacing:0.16em; text-transform:uppercase;
+    color:var(--brass); margin-bottom:14px; display:flex; justify-content:space-between; align-items:center;
+  }
+  .filter-title button{
+    background:none; border:none; color:var(--bone-dim); font-size:0.68rem; letter-spacing:0.08em;
+    cursor:pointer; text-decoration:underline; padding:0; font-family:'Inter',sans-serif;
+  }
+  .filter-option{
+    display:flex; align-items:center; gap:10px;
+    margin-bottom:10px; cursor:pointer; font-size:0.86rem; color:var(--bone-dim);
+  }
+  .filter-option:hover{color:var(--bone);}
+  .filter-option input{
+    appearance:none; width:15px; height:15px; border:1px solid var(--bone-dim);
+    border-radius:3px; position:relative; cursor:pointer; flex-shrink:0; margin:0;
+  }
+  .filter-option input:checked{background:var(--brass); border-color:var(--brass);}
+  .filter-option input:checked::after{
+    content:"✓"; position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    font-size:10px; color:var(--ink); line-height:1;
+  }
+  .swatch{
+    width:15px; height:15px; border-radius:50%; border:1px solid rgba(236,230,216,0.3); flex-shrink:0;
+  }
+  .clear-all{
+    margin-top:8px; background:none; border:1px solid var(--line); color:var(--bone-dim);
+    padding:10px 14px; width:100%; font-size:0.72rem; letter-spacing:0.08em; text-transform:uppercase;
+    cursor:pointer; border-radius:var(--radius); font-family:'Inter',sans-serif;
+  }
+  .clear-all:hover{border-color:var(--brass); color:var(--brass-bright);}
+
+  .results-bar{
+    display:flex; justify-content:space-between; align-items:center;
+    margin-bottom:24px; font-size:0.8rem; color:var(--bone-dim);
+  }
+  .strap-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(230px, 1fr));
+    gap:22px;
+  }
+  .strap-card{
+    border:1px solid var(--line);
+    padding:26px 22px 22px;
+    border-radius:var(--radius);
+    transition:border-color 0.2s ease, transform 0.2s ease;
+  }
+  .strap-card:hover{border-color:var(--brass); transform:translateY(-3px);}
+  .strap-illustration{height:110px; margin-bottom:18px;}
+  .strap-name{font-size:1.15rem; color:var(--bone);}
+  .strap-meta{display:flex; gap:10px; flex-wrap:wrap; margin-top:8px;}
+  .tag{
+    font-size:0.68rem; letter-spacing:0.05em; text-transform:uppercase;
+    color:var(--bone-dim); border:1px solid var(--line); padding:3px 8px; border-radius:12px;
+  }
+  .strap-bottom{display:flex; justify-content:space-between; align-items:center; margin-top:18px;}
+  .strap-price{font-family:'Space Mono',monospace; color:var(--brass-bright); font-size:1.05rem;}
+  .add-btn{
+    background:none; border:1px solid var(--bone-dim); color:var(--bone);
+    font-size:0.7rem; letter-spacing:0.06em; text-transform:uppercase; padding:8px 14px;
+    border-radius:var(--radius); cursor:pointer;
+  }
+  .add-btn:hover{border-color:var(--brass); color:var(--brass-bright);}
+  .no-results{
+    grid-column:1/-1; text-align:center; padding:60px 20px; color:var(--bone-dim);
+  }
+  .no-results h3{color:var(--bone); margin-bottom:10px; font-size:1.4rem;}
+
+  footer{
+    padding:40px 6vw; border-top:1px solid var(--line);
+    display:flex; justify-content:space-between; align-items:center;
+    color:var(--bone-dim); font-size:0.8rem; flex-wrap:wrap; gap:12px;
+  }
+
+  @media (max-width:860px){
+    .hero{grid-template-columns:1fr; text-align:center;}
+    .hero p{margin-left:auto; margin-right:auto;}
+    .hero-ctas{justify-content:center;}
+    .hero-clock-wrap{order:-1;}
+    .watch-grid{grid-template-columns:1fr;}
+    .straps-layout{grid-template-columns:1fr;}
+    .filter-panel{position:relative; top:0;}
+  }
+  @media (prefers-reduced-motion: reduce){
+    .hand, * {transition:none !important; animation:none !important;}
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="brand">JAYDEN'S <em>Watches</em></div>
+  <div class="navlinks">
+    <a href="#watches">Watches</a>
+    <a href="#straps">Straps</a>
+  </div>
+</nav>
+
+<section class="hero">
+  <div>
+    <span class="hero-eyebrow">Precision · Since the first wind</span>
+    <h1>Time, worn<br><i>on your terms.</i></h1>
+    <p>Two watches built to last a lifetime, and a library of straps to change their character by the day. Every hand moves true — everything else is up to you.</p>
+    <div class="hero-ctas">
+      <a href="#watches" class="btn btn-solid">View watches</a>
+      <a href="#straps" class="btn btn-ghost">Browse straps</a>
+    </div>
+  </div>
+  <div class="hero-clock-wrap">
+    <svg id="heroClock" viewBox="0 0 400 400">
+      <circle cx="200" cy="200" r="188" fill="#161b22" stroke="#c2984e" stroke-width="1.5"/>
+      <circle cx="200" cy="200" r="164" fill="none" stroke="rgba(236,230,216,0.18)" stroke-width="1"/>
+      <g id="ticks"></g>
+      <g id="numerals" font-family="Cormorant Garamond, serif" font-size="22" fill="#ece6d8" text-anchor="middle"></g>
+      <line id="hourHand" class="hand" x1="200" y1="200" x2="200" y2="120" stroke="#ece6d8" stroke-width="6" stroke-linecap="round"/>
+      <line id="minHand" class="hand" x1="200" y1="200" x2="200" y2="75" stroke="#ece6d8" stroke-width="4" stroke-linecap="round"/>
+      <line id="secHand" class="hand" x1="200" y1="215" x2="200" y2="65" stroke="#c2984e" stroke-width="2" stroke-linecap="round"/>
+      <circle cx="200" cy="200" r="7" fill="#c2984e"/>
+    </svg>
+  </div>
+</section>
+
+<section id="watches">
+  <div class="section-head">
+    <div>
+      <span class="eyebrow">The Collection</span>
+      <h2>Two watches. No compromises.</h2>
+    </div>
+    <p>Each case is machined, tested, and finished by hand before a strap ever touches it.</p>
+  </div>
+
+  <div class="watch-grid">
+    <!-- Watch 1: Field -->
+    <div class="watch-card">
+      <svg class="watch-face-svg" viewBox="0 0 220 220">
+        <circle cx="110" cy="110" r="100" fill="#1b212b" stroke="#c2984e" stroke-width="3"/>
+        <circle cx="110" cy="110" r="82" fill="#ece6d8"/>
+        <g stroke="#12161c" stroke-width="2">
+          <line x1="110" y1="34" x2="110" y2="46"/>
+          <line x1="110" y1="174" x2="110" y2="186"/>
+          <line x1="34" y1="110" x2="46" y2="110"/>
+          <line x1="174" y1="110" x2="186" y2="110"/>
+        </g>
+        <line x1="110" y1="110" x2="110" y2="66" stroke="#12161c" stroke-width="5" stroke-linecap="round"/>
+        <line x1="110" y1="110" x2="145" y2="110" stroke="#12161c" stroke-width="4" stroke-linecap="round"/>
+        <circle cx="110" cy="110" r="5" fill="#c2984e"/>
+        <text x="110" y="145" text-anchor="middle" font-family="Space Mono, monospace" font-size="9" fill="#12161c" letter-spacing="1">MERIDIAN</text>
+      </svg>
+      <h3>The Field</h3>
+      <div class="watch-tagline">For days that don't stay behind a desk</div>
+      <div class="watch-specs">
+        <div class="spec-row"><span>Case</span><span>39mm brushed steel</span></div>
+        <div class="spec-row"><span>Movement</span><span>Automatic, 42h reserve</span></div>
+        <div class="spec-row"><span>Water resistance</span><span>100m</span></div>
+        <div class="spec-row"><span>Lug width</span><span>20mm</span></div>
+      </div>
+      <div class="watch-price">$680</div>
+      <a href="#straps" class="btn btn-ghost">Pair with a strap</a>
+    </div>
+
+    <!-- Watch 2: Noir -->
+    <div class="watch-card">
+      <svg class="watch-face-svg" viewBox="0 0 220 220">
+        <circle cx="110" cy="110" r="100" fill="#0d0f13" stroke="#e0b76b" stroke-width="3"/>
+        <circle cx="110" cy="110" r="82" fill="#181c22"/>
+        <g stroke="#c2984e" stroke-width="2">
+          <line x1="110" y1="34" x2="110" y2="46"/>
+          <line x1="110" y1="174" x2="110" y2="186"/>
+          <line x1="34" y1="110" x2="46" y2="110"/>
+          <line x1="174" y1="110" x2="186" y2="110"/>
+        </g>
+        <line x1="110" y1="110" x2="110" y2="66" stroke="#ece6d8" stroke-width="5" stroke-linecap="round"/>
+        <line x1="110" y1="110" x2="145" y2="110" stroke="#ece6d8" stroke-width="4" stroke-linecap="round"/>
+        <circle cx="110" cy="110" r="5" fill="#e0b76b"/>
+        <text x="110" y="145" text-anchor="middle" font-family="Space Mono, monospace" font-size="9" fill="#e0b76b" letter-spacing="1">MERIDIAN</text>
+      </svg>
+      <h3>The Noir</h3>
+      <div class="watch-tagline">For rooms with dimmer switches</div>
+      <div class="watch-specs">
+        <div class="spec-row"><span>Case</span><span>40mm black PVD steel</span></div>
+        <div class="spec-row"><span>Movement</span><span>Automatic, 48h reserve</span></div>
+        <div class="spec-row"><span>Water resistance</span><span>50m</span></div>
+        <div class="spec-row"><span>Lug width</span><span>20mm</span></div>
+      </div>
+      <div class="watch-price">$740</div>
+      <a href="#straps" class="btn btn-ghost">Pair with a strap</a>
+    </div>
+  </div>
+</section>
+
+<section id="straps">
+  <div class="section-head">
+    <div>
+      <span class="eyebrow">Strap Library</span>
+      <h2>Change the mood, keep the watch.</h2>
+    </div>
+    <p>Filter by color, leather, and lug size to find the one that fits.</p>
+  </div>
+
+  <div class="straps-layout">
+    <aside class="filter-panel">
+      <div class="filter-group">
+        <div class="filter-title">Color</div>
+        <div id="colorFilters"></div>
+      </div>
+      <div class="filter-group">
+        <div class="filter-title">Leather</div>
+        <div id="leatherFilters"></div>
+      </div>
+      <div class="filter-group">
+        <div class="filter-title">Size</div>
+        <div id="sizeFilters"></div>
+      </div>
+      <button class="clear-all" id="clearAll">Clear all filters</button>
+    </aside>
+
+    <div>
+      <div class="results-bar">
+        <span id="resultCount" class="mono"></span>
+      </div>
+      <div class="strap-grid" id="strapGrid"></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div>© 2026 Jayden's Watches</div>
+  <div class="mono">Toronto, Canada</div>
+</footer>
+
+<script>
+// ---------- HERO CLOCK ----------
+const ticks = document.getElementById('ticks');
+const numerals = document.getElementById('numerals');
+const romans = ['XII','I','II','III','IV','V','VI','VII','VIII','IX','X','XI'];
+for(let i=0;i<12;i++){
+  const angle = (i*30) * Math.PI/180;
+  const x1 = 200 + 172*Math.sin(angle), y1 = 200 - 172*Math.cos(angle);
+  const x2 = 200 + 184*Math.sin(angle), y2 = 200 - 184*Math.cos(angle);
+  const line = document.createElementNS('http://www.w3.org/2000/svg','line');
+  line.setAttribute('x1',x1); line.setAttribute('y1',y1);
+  line.setAttribute('x2',x2); line.setAttribute('y2',y2);
+  line.setAttribute('stroke', i%3===0 ? '#c2984e' : 'rgba(236,230,216,0.35)');
+  line.setAttribute('stroke-width', i%3===0 ? 3 : 1.5);
+  ticks.appendChild(line);
+
+  const nx = 200 + 145*Math.sin(angle), ny = 200 - 145*Math.cos(angle) + 8;
+  const text = document.createElementNS('http://www.w3.org/2000/svg','text');
+  text.setAttribute('x', nx); text.setAttribute('y', ny);
+  text.textContent = romans[i];
+  numerals.appendChild(text);
+}
+function tickClock(){
+  const now = new Date();
+  const s = now.getSeconds(), m = now.getMinutes(), h = now.getHours()%12;
+  document.getElementById('secHand').setAttribute('transform', `rotate(${s*6} 200 200)`);
+  document.getElementById('minHand').setAttribute('transform', `rotate(${m*6 + s*0.1} 200 200)`);
+  document.getElementById('hourHand').setAttribute('transform', `rotate(${h*30 + m*0.5} 200 200)`);
+}
+tickClock();
+setInterval(tickClock, 1000);
+
+// ---------- STRAP DATA ----------
+const straps = [
+  {name:'Cognac Classic', color:'Cognac', hex:'#a3673a', leather:'Full-grain', size:'20mm', price:89},
+  {name:'Onyx Standard', color:'Black', hex:'#1c1b1a', leather:'Full-grain', size:'20mm', price:89},
+  {name:'Chestnut Weekend', color:'Chestnut', hex:'#6f4028', leather:'Suede', size:'18mm', price:79},
+  {name:'Deep Sea Nubuck', color:'Navy', hex:'#26344a', leather:'Nubuck', size:'22mm', price:95},
+  {name:'Olive Grove', color:'Olive', hex:'#5b6248', leather:'Vegetable-tanned', size:'20mm', price:85},
+  {name:'Onyx Cordovan', color:'Black', hex:'#1c1b1a', leather:'Shell Cordovan', size:'22mm', price:145},
+  {name:'Cognac Suede', color:'Cognac', hex:'#a3673a', leather:'Suede', size:'18mm', price:79},
+  {name:'Chestnut Heritage', color:'Chestnut', hex:'#6f4028', leather:'Full-grain', size:'24mm', price:92},
+  {name:'Navy Standard', color:'Navy', hex:'#26344a', leather:'Full-grain', size:'20mm', price:89},
+  {name:'Olive Suede', color:'Olive', hex:'#5b6248', leather:'Suede', size:'18mm', price:79},
+  {name:'Cognac Nubuck', color:'Cognac', hex:'#a3673a', leather:'Nubuck', size:'22mm', price:95},
+  {name:'Onyx Vegetable-tanned', color:'Black', hex:'#1c1b1a', leather:'Vegetable-tanned', size:'24mm', price:88},
+];
+
+const colors = [...new Set(straps.map(s=>s.color))];
+const leathers = [...new Set(straps.map(s=>s.leather))];
+const sizes = [...new Set(straps.map(s=>s.size))].sort();
+
+const active = {color:new Set(), leather:new Set(), size:new Set()};
+
+function buildFilterGroup(containerId, values, category, withSwatch){
+  const container = document.getElementById(containerId);
+  values.forEach(val=>{
+    const label = document.createElement('label');
+    label.className = 'filter-option';
+    const swatchHtml = withSwatch ? `<span class="swatch" style="background:${straps.find(s=>s.color===val).hex}"></span>` : '';
+    label.innerHTML = `<input type="checkbox" data-cat="${category}" value="${val}">${swatchHtml}<span>${val}</span>`;
+    container.appendChild(label);
+  });
+}
+buildFilterGroup('colorFilters', colors, 'color', true);
+buildFilterGroup('leatherFilters', leathers, 'leather', false);
+buildFilterGroup('sizeFilters', sizes, 'size', false);
+
+document.querySelectorAll('.filter-option input').forEach(cb=>{
+  cb.addEventListener('change', e=>{
+    const cat = e.target.dataset.cat, val = e.target.value;
+    if(e.target.checked) active[cat].add(val); else active[cat].delete(val);
+    render();
+  });
+});
+
+document.getElementById('clearAll').addEventListener('click', ()=>{
+  document.querySelectorAll('.filter-option input').forEach(cb=>cb.checked=false);
+  active.color.clear(); active.leather.clear(); active.size.clear();
+  render();
+});
+
+function strapSvg(hex, leather){
+  const texture = leather === 'Suede' ? 0.55 : leather === 'Shell Cordovan' ? 1 : 0.85;
+  return `
+  <svg class="strap-illustration" viewBox="0 0 220 110">
+    <rect x="30" y="10" width="160" height="90" rx="14" fill="${hex}" opacity="${texture}"/>
+    <rect x="30" y="10" width="160" height="90" rx="14" fill="none" stroke="rgba(236,230,216,0.25)" stroke-width="1.5" stroke-dasharray="4 3"/>
+    <circle cx="52" cy="22" r="2.4" fill="rgba(236,230,216,0.4)"/>
+    <circle cx="52" cy="88" r="2.4" fill="rgba(236,230,216,0.4)"/>
+    <circle cx="168" cy="22" r="2.4" fill="rgba(236,230,216,0.4)"/>
+    <circle cx="168" cy="88" r="2.4" fill="rgba(236,230,216,0.4)"/>
+    <rect x="8" y="42" width="26" height="26" rx="6" fill="#20242b" stroke="#c2984e" stroke-width="1.5"/>
+    <rect x="186" y="42" width="26" height="26" rx="6" fill="#20242b" stroke="#c2984e" stroke-width="1.5"/>
+  </svg>`;
+}
+
+function render(){
+  const grid = document.getElementById('strapGrid');
+  const filtered = straps.filter(s=>
+    (active.color.size===0 || active.color.has(s.color)) &&
+    (active.leather.size===0 || active.leather.has(s.leather)) &&
+    (active.size.size===0 || active.size.has(s.size))
+  );
+  document.getElementById('resultCount').textContent = `${filtered.length} strap${filtered.length!==1?'s':''} found`;
+  grid.innerHTML = '';
+  if(filtered.length===0){
+    grid.innerHTML = `<div class="no-results"><h3>No straps match</h3><p>Try clearing a filter to see more options.</p></div>`;
+    return;
+  }
+  filtered.forEach(s=>{
+    const card = document.createElement('div');
+    card.className = 'strap-card';
+    card.innerHTML = `
+      ${strapSvg(s.hex, s.leather)}
+      <div class="strap-name">${s.name}</div>
+      <div class="strap-meta">
+        <span class="tag">${s.leather}</span>
+        <span class="tag">${s.size}</span>
+      </div>
+      <div class="strap-bottom">
+        <span class="strap-price">$${s.price}</span>
+        <button class="add-btn">Add to cart</button>
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+}
+render();
+</script>
+
+</body>
+</html>
