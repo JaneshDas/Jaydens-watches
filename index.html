@@ -207,6 +207,93 @@
   .no-results{grid-column:1/-1; text-align:center; padding:70px 20px; color:var(--muted); background:var(--paper);}
   .no-results h3{color:var(--ink); margin-bottom:10px; font-size:1.4rem;}
 
+  .watch-add{margin-top:22px;}
+
+  /* ---------- OVERLAY / PRODUCT ---------- */
+  .overlay{
+    position:fixed; inset:0; z-index:100;
+    background:rgba(22,21,15,0.42); backdrop-filter:blur(3px);
+    display:none; overflow-y:auto;
+  }
+  .overlay.open{display:block;}
+  .overlay-inner{
+    background:var(--paper); min-height:100%;
+    max-width:1120px; margin:0 auto; padding:80px 6vw 100px; position:relative;
+  }
+  .overlay-close{
+    position:absolute; top:24px; right:6vw;
+    background:none; border:1px solid var(--line); color:var(--ink);
+    width:44px; height:44px; font-size:1.2rem; cursor:pointer; line-height:1;
+    display:flex; align-items:center; justify-content:center; transition:all 0.2s ease;
+  }
+  .overlay-close:hover{background:var(--ink); color:var(--paper);}
+
+  .product{display:grid; grid-template-columns:1fr 1fr; gap:60px; align-items:start;}
+  .product-visual{
+    background:var(--paper-2); border:1px solid var(--line);
+    display:flex; align-items:center; justify-content:center; padding:56px 40px; position:sticky; top:40px;
+  }
+  .product-visual svg{width:100%; max-width:340px;}
+  .product-visual .watch-face-svg{width:100%; max-width:300px; margin:0;}
+  .product .eyebrow{display:block; margin-bottom:16px;}
+  .product h2{font-size:clamp(1.9rem,3.2vw,2.7rem); margin-bottom:10px;}
+  .product-sub{color:var(--blue); font-style:italic; margin-bottom:34px; line-height:1.5;}
+
+  .opt-group{margin-bottom:28px;}
+  .opt-label{
+    font-family:'Space Mono',monospace; font-size:0.68rem; letter-spacing:0.16em; text-transform:uppercase;
+    color:var(--muted); margin-bottom:13px; display:flex; justify-content:space-between; gap:12px;
+  }
+  .opt-label .opt-value{color:var(--ink); letter-spacing:0.06em;}
+  .swatch-row{display:flex; gap:10px; flex-wrap:wrap;}
+  .swatch-btn{
+    width:34px; height:34px; border-radius:50%; cursor:pointer; padding:0;
+    border:1px solid var(--line); transition:transform 0.15s ease;
+  }
+  .swatch-btn:hover{transform:scale(1.09);}
+  .swatch-btn.sel{box-shadow:0 0 0 2px var(--paper), 0 0 0 3.5px var(--ink);}
+  .pill-row{display:flex; gap:8px; flex-wrap:wrap;}
+  .pill{
+    border:1px solid var(--line); background:none; color:var(--ink);
+    font-family:'Space Mono',monospace; font-size:0.72rem; letter-spacing:0.05em;
+    padding:9px 15px; cursor:pointer; transition:all 0.15s ease;
+  }
+  .pill:hover{border-color:var(--muted);}
+  .pill.sel{background:var(--ink); color:var(--paper); border-color:var(--ink);}
+
+  .product-price{font-family:'Space Mono',monospace; font-size:1.8rem; margin:38px 0 10px;}
+  .product-note{font-size:0.82rem; color:var(--muted); line-height:1.6; margin:0 0 24px; max-width:44ch;}
+  .btn-add{
+    background:var(--ink); color:var(--paper); border:1px solid var(--ink);
+    padding:16px 32px; font-family:'Inter',sans-serif; font-weight:500;
+    font-size:0.74rem; letter-spacing:0.16em; text-transform:uppercase; cursor:pointer;
+    transition:all 0.2s ease;
+  }
+  .btn-add:hover{background:var(--blue); border-color:var(--blue);}
+
+  /* ---------- CART ---------- */
+  .cart h2{font-size:clamp(1.9rem,3.2vw,2.7rem); margin-bottom:8px;}
+  .cart-lead{color:var(--muted); margin-bottom:44px; max-width:56ch; line-height:1.7;}
+  .cart-item{
+    display:flex; justify-content:space-between; gap:20px; align-items:flex-start;
+    padding:22px 0; border-top:1px solid var(--line);
+  }
+  .cart-item:last-of-type{border-bottom:1px solid var(--line);}
+  .cart-item h4{margin:0 0 7px; font-weight:400; font-size:1.15rem;}
+  .cart-item .opts{font-family:'Space Mono',monospace; font-size:0.7rem; color:var(--muted); line-height:1.8;}
+  .cart-item-right{display:flex; align-items:center; gap:18px; flex-shrink:0;}
+  .cart-item .price{font-family:'Space Mono',monospace; font-size:1rem;}
+  .cart-remove{background:none; border:none; color:var(--muted); font-size:1.3rem; cursor:pointer; line-height:1; padding:0 4px;}
+  .cart-remove:hover{color:var(--ink);}
+  .cart-total{display:flex; justify-content:space-between; align-items:baseline; margin:32px 0 6px; font-size:1.05rem;}
+  .cart-total .price{font-family:'Space Mono',monospace; font-size:1.6rem;}
+  .cart-total-note{font-family:'Space Mono',monospace; font-size:0.68rem; color:var(--muted); letter-spacing:0.04em;}
+  .cart-contact{margin-top:44px; padding:34px; border:1px solid var(--line); background:var(--paper-2);}
+  .cart-contact h3{font-size:1.35rem; margin-bottom:12px;}
+  .cart-contact p{color:var(--muted); font-size:0.9rem; line-height:1.7; margin:0 0 22px; max-width:58ch;}
+  .cart-contact .email{font-family:'Space Mono',monospace; font-size:0.78rem; color:var(--ink); margin-top:16px;}
+  .cart-empty{color:var(--muted); padding:24px 0 10px;}
+
   footer{
     padding:56px 5vw; border-top:1px solid var(--line);
     display:flex; justify-content:space-between; align-items:flex-end; gap:24px; flex-wrap:wrap;
@@ -242,7 +329,7 @@
   <div class="wordmark">Jayden's<small>Watches</small></div>
   <div class="nav-right">
     <a href="#straps">Configure</a>
-    <a href="#" aria-label="Cart">Cart (0)</a>
+    <a href="#" id="cartLink" aria-label="Cart">Cart (0)</a>
   </div>
 </nav>
 
@@ -328,6 +415,7 @@
       <h3>The Field</h3>
       <p class="watch-desc">39mm brushed steel, automatic. For days that don't stay behind a desk.</p>
       <div class="watch-price">$680</div>
+      <button class="add-btn watch-add">Add</button>
     </div>
 
     <!-- Watch 2: Noir -->
@@ -360,6 +448,7 @@
       <h3>The Noir</h3>
       <p class="watch-desc">40mm black PVD steel, automatic. For rooms with dimmer switches.</p>
       <div class="watch-price">$740</div>
+      <button class="add-btn watch-add">Add</button>
     </div>
   </div>
 </section>
@@ -394,6 +483,13 @@
     </div>
   </div>
 </section>
+
+<div class="overlay" id="overlay" aria-hidden="true" role="dialog" aria-modal="true">
+  <div class="overlay-inner">
+    <button class="overlay-close" id="overlayClose" aria-label="Close">&times;</button>
+    <div id="overlayBody"></div>
+  </div>
+</div>
 
 <footer>
   <div class="wordmark">Jayden's<small>Watches</small></div>
@@ -524,13 +620,231 @@ function render(){
       </div>
       <div class="strap-bottom">
         <span class="strap-price">$${s.price}</span>
-        <button class="add-btn">Add</button>
+        <button class="add-btn" data-strap="${straps.indexOf(s)}">Add</button>
       </div>
     `;
     grid.appendChild(card);
   });
 }
 render();
+
+// ---------- PRODUCT / CART ----------
+// NOTE: change this to your real contact address so enquiries reach you.
+const OWNER_EMAIL = 'orders@jaydenswatches.com';
+
+const colorOptions = [
+  {name:'Cognac', hex:'#a3673a'},
+  {name:'Black', hex:'#1c1b1a'},
+  {name:'Chestnut', hex:'#6f4028'},
+  {name:'Navy', hex:'#26344a'},
+  {name:'Olive', hex:'#5b6248'},
+  {name:'Tan', hex:'#c19a6b'},
+  {name:'Burgundy', hex:'#5e2a2a'},
+];
+const widthOptions = ['18mm','20mm','22mm','24mm'];
+const lengthOptions = ['Short','Regular','Long','Extra long'];
+const widthSurcharge = {'18mm':0,'20mm':0,'22mm':0,'24mm':5};
+const lengthSurcharge = {'Short':0,'Regular':0,'Long':8,'Extra long':15};
+
+let cart = [];
+try{ cart = JSON.parse(localStorage.getItem('jw_cart')) || []; }catch(e){ cart = []; }
+function saveCart(){
+  try{ localStorage.setItem('jw_cart', JSON.stringify(cart)); }catch(e){}
+  updateCartCount();
+}
+function updateCartCount(){
+  document.getElementById('cartLink').textContent = `Cart (${cart.length})`;
+}
+
+const overlay = document.getElementById('overlay');
+const overlayBody = document.getElementById('overlayBody');
+function openOverlay(html){
+  overlayBody.onclick = null;
+  overlayBody.innerHTML = html;
+  overlay.classList.add('open');
+  overlay.setAttribute('aria-hidden','false');
+  document.body.style.overflow = 'hidden';
+  overlay.scrollTop = 0;
+}
+function closeOverlay(){
+  overlay.classList.remove('open');
+  overlay.setAttribute('aria-hidden','true');
+  document.body.style.overflow = '';
+}
+document.getElementById('overlayClose').addEventListener('click', closeOverlay);
+overlay.addEventListener('click', e=>{ if(e.target===overlay) closeOverlay(); });
+document.addEventListener('keydown', e=>{ if(e.key==='Escape' && overlay.classList.contains('open')) closeOverlay(); });
+
+function configStrapSvg(bandHex, loopHex){
+  return `
+  <svg viewBox="0 0 320 150" role="img" aria-label="Strap preview">
+    <rect x="34" y="58" width="252" height="38" rx="7" fill="${bandHex}"/>
+    <rect x="34" y="58" width="252" height="38" rx="7" fill="none" stroke="rgba(22,21,15,0.28)" stroke-width="1.2" stroke-dasharray="5 3"/>
+    <rect x="196" y="52" width="17" height="50" rx="3" fill="${loopHex}"/>
+    <rect x="220" y="52" width="13" height="50" rx="3" fill="${loopHex}" opacity="0.92"/>
+    <rect x="8" y="60" width="30" height="34" rx="6" fill="#cfccc2" stroke="#16150f" stroke-width="1.3"/>
+    <line x1="23" y1="60" x2="23" y2="94" stroke="#16150f" stroke-width="1.3"/>
+    <circle cx="250" cy="77" r="2.4" fill="rgba(250,249,246,0.65)"/>
+    <circle cx="262" cy="77" r="2.4" fill="rgba(250,249,246,0.65)"/>
+    <circle cx="274" cy="77" r="2.4" fill="rgba(250,249,246,0.65)"/>
+  </svg>`;
+}
+
+function openStrap(idx){
+  const s = straps[idx];
+  const state = {strapColor:s.color, strapHex:s.hex, loopColor:s.color, loopHex:s.hex, width:'20mm', length:'Regular'};
+  const price = ()=> s.price + widthSurcharge[state.width] + lengthSurcharge[state.length];
+  const swatches = (cat)=> colorOptions.map(c=>
+    `<button class="swatch-btn ${state[cat]===c.name?'sel':''}" style="background:${c.hex}" data-cat="${cat}" data-name="${c.name}" data-hex="${c.hex}" title="${c.name}" aria-label="${c.name}"></button>`).join('');
+  const pills = (opts,cat)=> opts.map(o=>
+    `<button class="pill ${state[cat]===o?'sel':''}" data-cat="${cat}" data-val="${o}">${o}</button>`).join('');
+
+  openOverlay(`
+    <div class="product">
+      <div class="product-visual" id="pv">${configStrapSvg(state.strapHex, state.loopHex)}</div>
+      <div>
+        <span class="eyebrow">Strap · ${s.leather}</span>
+        <h2>${s.name}</h2>
+        <div class="product-sub">Hand-cut ${s.leather.toLowerCase()} leather, made to order.</div>
+
+        <div class="opt-group">
+          <div class="opt-label">Strap colour <span class="opt-value" data-lbl="strapColor">${state.strapColor}</span></div>
+          <div class="swatch-row">${swatches('strapColor')}</div>
+        </div>
+        <div class="opt-group">
+          <div class="opt-label">Loop colour <span class="opt-value" data-lbl="loopColor">${state.loopColor}</span></div>
+          <div class="swatch-row">${swatches('loopColor')}</div>
+        </div>
+        <div class="opt-group">
+          <div class="opt-label">Band width <span class="opt-value" data-lbl="width">${state.width}</span></div>
+          <div class="pill-row">${pills(widthOptions,'width')}</div>
+        </div>
+        <div class="opt-group">
+          <div class="opt-label">Length <span class="opt-value" data-lbl="length">${state.length}</span></div>
+          <div class="pill-row">${pills(lengthOptions,'length')}</div>
+        </div>
+
+        <div class="product-price" data-price>$${price()}</div>
+        <p class="product-note">Made to order. No online checkout &mdash; add to your cart and send us an enquiry to confirm details, final price, and delivery.</p>
+        <button class="btn-add" data-addstrap>Add to cart</button>
+      </div>
+    </div>`);
+
+  function refresh(){
+    overlayBody.querySelector('#pv').innerHTML = configStrapSvg(state.strapHex, state.loopHex);
+    overlayBody.querySelectorAll('[data-lbl]').forEach(el=> el.textContent = state[el.dataset.lbl]);
+    overlayBody.querySelector('[data-price]').textContent = '$'+price();
+    overlayBody.querySelectorAll('.swatch-btn').forEach(b=> b.classList.toggle('sel', state[b.dataset.cat]===b.dataset.name));
+    overlayBody.querySelectorAll('.pill').forEach(b=> b.classList.toggle('sel', state[b.dataset.cat]===b.dataset.val));
+  }
+  overlayBody.onclick = e=>{
+    const sw = e.target.closest('.swatch-btn');
+    if(sw){
+      state[sw.dataset.cat] = sw.dataset.name;
+      state[sw.dataset.cat==='strapColor' ? 'strapHex' : 'loopHex'] = sw.dataset.hex;
+      refresh(); return;
+    }
+    const pill = e.target.closest('.pill');
+    if(pill){ state[pill.dataset.cat] = pill.dataset.val; refresh(); return; }
+    if(e.target.closest('[data-addstrap]')){
+      cart.push({type:'Strap', name:s.name, price:price(),
+        options:[`Leather: ${s.leather}`, `Strap: ${state.strapColor}`, `Loops: ${state.loopColor}`, `Width: ${state.width}`, `Length: ${state.length}`]});
+      saveCart(); openCart();
+    }
+  };
+}
+
+function openWatch(card){
+  const name = card.querySelector('h3').textContent;
+  const desc = card.querySelector('.watch-desc').textContent;
+  const priceText = card.querySelector('.watch-price').textContent;
+  const priceNum = parseInt(priceText.replace(/[^0-9]/g,''), 10);
+  const svg = card.querySelector('.watch-face-svg').outerHTML;
+  openOverlay(`
+    <div class="product">
+      <div class="product-visual">${svg}</div>
+      <div>
+        <span class="eyebrow">Watch</span>
+        <h2>${name}</h2>
+        <div class="product-sub">${desc}</div>
+        <div class="product-price">${priceText}</div>
+        <p class="product-note">Assembled to order. No online checkout &mdash; add to your cart and send us an enquiry to confirm details, final price, and delivery.</p>
+        <button class="btn-add" data-addwatch>Add to cart</button>
+      </div>
+    </div>`);
+  overlayBody.querySelector('[data-addwatch]').addEventListener('click', ()=>{
+    cart.push({type:'Watch', name, price:priceNum, options:[desc]});
+    saveCart(); openCart();
+  });
+}
+
+function openCart(){
+  let html = `<div class="cart"><h2>Your cart</h2>
+    <p class="cart-lead">We keep things personal. There's no online checkout &mdash; build your cart, then send us an enquiry. We'll get back to you to confirm the options, agree a price, and arrange delivery to wherever you are.</p>`;
+  if(cart.length===0){
+    openOverlay(html + `<p class="cart-empty">Your cart is empty.</p></div>`);
+    return;
+  }
+  cart.forEach((item,i)=>{
+    html += `
+      <div class="cart-item">
+        <div>
+          <h4>${item.name}</h4>
+          <div class="opts">${item.type}${item.options && item.options.length ? ' &middot; ' + item.options.join(' &middot; ') : ''}</div>
+        </div>
+        <div class="cart-item-right">
+          <span class="price">$${item.price}</span>
+          <button class="cart-remove" data-rm="${i}" aria-label="Remove item">&times;</button>
+        </div>
+      </div>`;
+  });
+  const total = cart.reduce((a,b)=>a+b.price, 0);
+  html += `
+    <div class="cart-total"><span>Indicative total</span><span class="price">$${total}</span></div>
+    <div class="cart-total-note">A starting point &mdash; final pricing is agreed by enquiry.</div>
+    <div class="cart-contact">
+      <h3>Ready to enquire?</h3>
+      <p>Send us your cart along with a note &mdash; your location, timing, and anything you'd like to adjust &mdash; and we'll take it from there.</p>
+      <button class="btn-add" data-enquire>Send enquiry by email</button>
+      <div class="email">${OWNER_EMAIL}</div>
+    </div>
+  </div>`;
+  openOverlay(html);
+  overlayBody.querySelectorAll('.cart-remove').forEach(b=>{
+    b.addEventListener('click', ()=>{ cart.splice(parseInt(b.dataset.rm,10),1); saveCart(); openCart(); });
+  });
+  overlayBody.querySelector('[data-enquire]').addEventListener('click', sendEnquiry);
+}
+
+function sendEnquiry(){
+  const lines = cart.map((it,i)=> `${i+1}. ${it.name} (${it.type}) - $${it.price}\n   ${it.options.join(', ')}`);
+  const total = cart.reduce((a,b)=>a+b.price, 0);
+  const body =
+`Hi Jayden's Watches,
+
+I'd like to enquire about the following:
+
+${lines.join('\n')}
+
+Indicative total: $${total}
+
+My location:
+Preferred contact:
+Notes:
+`;
+  window.location.href = `mailto:${OWNER_EMAIL}?subject=${encodeURIComponent("Enquiry from Jayden's Watches")}&body=${encodeURIComponent(body)}`;
+}
+
+// ---------- WIRING ----------
+document.getElementById('strapGrid').addEventListener('click', e=>{
+  const btn = e.target.closest('.add-btn');
+  if(btn && btn.dataset.strap !== undefined) openStrap(parseInt(btn.dataset.strap,10));
+});
+document.querySelectorAll('.watch-add').forEach(btn=>{
+  btn.addEventListener('click', ()=> openWatch(btn.closest('.watch-card')));
+});
+document.getElementById('cartLink').addEventListener('click', e=>{ e.preventDefault(); openCart(); });
+updateCartCount();
 </script>
 
 </body>
