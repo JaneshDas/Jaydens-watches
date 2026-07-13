@@ -182,29 +182,29 @@
   .clear-all:hover{border-color:var(--ink); color:var(--ink);}
 
   .results-bar{margin-bottom:26px; font-family:'Space Mono',monospace; font-size:0.76rem; color:var(--muted);}
-  .strap-grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(228px,1fr)); gap:1px;
+  .strap-grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(360px,1fr)); gap:1px;
     background:var(--line); border:1px solid var(--line);}
   .strap-card{
-    background:var(--paper); padding:28px 24px 24px;
+    background:var(--paper); padding:40px 36px 32px;
     transition:background 0.2s ease;
   }
   .strap-card:hover{background:var(--paper-2);}
   .strap-photo{
-    width:100%; height:160px; object-fit:contain; object-position:center;
-    background:var(--paper-2); border:1px solid var(--line-soft); margin-bottom:20px;
+    width:100%; aspect-ratio:4/3; height:auto; object-fit:contain; object-position:center;
+    background:var(--paper-2); border:1px solid var(--line-soft); margin-bottom:26px;
   }
-  .strap-name{font-size:1.1rem; font-weight:400;}
-  .strap-meta{display:flex; gap:8px; flex-wrap:wrap; margin-top:10px;}
+  .strap-name{font-size:1.4rem; font-weight:400;}
+  .strap-meta{display:flex; gap:10px; flex-wrap:wrap; margin-top:12px;}
   .tag{
-    font-family:'Space Mono',monospace; font-size:0.62rem; letter-spacing:0.06em; text-transform:uppercase;
-    color:var(--muted); border:1px solid var(--line); padding:3px 8px;
+    font-family:'Space Mono',monospace; font-size:0.7rem; letter-spacing:0.06em; text-transform:uppercase;
+    color:var(--muted); border:1px solid var(--line); padding:4px 10px;
   }
-  .strap-bottom{display:flex; justify-content:space-between; align-items:center; margin-top:20px;}
-  .strap-price{font-family:'Space Mono',monospace; font-size:1rem;}
+  .strap-bottom{display:flex; justify-content:space-between; align-items:center; margin-top:26px;}
+  .strap-price{font-family:'Space Mono',monospace; font-size:1.3rem;}
   .add-btn{
     background:none; border:1px solid var(--ink); color:var(--ink);
-    font-family:'Space Mono',monospace; font-size:0.62rem; letter-spacing:0.1em; text-transform:uppercase;
-    padding:8px 13px; cursor:pointer; transition:all 0.2s ease;
+    font-family:'Space Mono',monospace; font-size:0.7rem; letter-spacing:0.1em; text-transform:uppercase;
+    padding:11px 18px; cursor:pointer; transition:all 0.2s ease;
   }
   .add-btn:hover{background:var(--ink); color:var(--paper);}
   .no-results{grid-column:1/-1; text-align:center; padding:70px 20px; color:var(--muted); background:var(--paper);}
