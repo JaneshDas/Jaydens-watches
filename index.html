@@ -440,18 +440,18 @@ setInterval(tickClock, 1000);
 
 // ---------- STRAP DATA ----------
 const straps = [
-  {name:'Cognac Classic', color:'Cognac', hex:'#a3673a', leather:'Full-grain', size:'20mm', price:89},
-  {name:'Onyx Standard', color:'Black', hex:'#1c1b1a', leather:'Full-grain', size:'20mm', price:89},
-  {name:'Chestnut Weekend', color:'Chestnut', hex:'#6f4028', leather:'Suede', size:'18mm', price:79},
-  {name:'Deep Sea Nubuck', color:'Navy', hex:'#26344a', leather:'Nubuck', size:'22mm', price:95},
-  {name:'Olive Grove', color:'Olive', hex:'#5b6248', leather:'Vegetable-tanned', size:'20mm', price:85},
-  {name:'Onyx Cordovan', color:'Black', hex:'#1c1b1a', leather:'Shell Cordovan', size:'22mm', price:145},
-  {name:'Cognac Suede', color:'Cognac', hex:'#a3673a', leather:'Suede', size:'18mm', price:79},
-  {name:'Chestnut Heritage', color:'Chestnut', hex:'#6f4028', leather:'Full-grain', size:'24mm', price:92},
-  {name:'Navy Standard', color:'Navy', hex:'#26344a', leather:'Full-grain', size:'20mm', price:89},
-  {name:'Olive Suede', color:'Olive', hex:'#5b6248', leather:'Suede', size:'18mm', price:79},
-  {name:'Cognac Nubuck', color:'Cognac', hex:'#a3673a', leather:'Nubuck', size:'22mm', price:95},
-  {name:'Onyx Vegetable-tanned', color:'Black', hex:'#1c1b1a', leather:'Vegetable-tanned', size:'24mm', price:88},
+  {name:'Cognac Classic', color:'Cognac', hex:'#a3673a', leather:'Full-grain', price:89},
+  {name:'Onyx Standard', color:'Black', hex:'#1c1b1a', leather:'Full-grain', price:89},
+  {name:'Chestnut Weekend', color:'Chestnut', hex:'#6f4028', leather:'Suede', price:79},
+  {name:'Deep Sea Nubuck', color:'Navy', hex:'#26344a', leather:'Nubuck', price:95},
+  {name:'Olive Grove', color:'Olive', hex:'#5b6248', leather:'Vegetable-tanned', price:85},
+  {name:'Onyx Cordovan', color:'Black', hex:'#1c1b1a', leather:'Shell Cordovan', price:145},
+  {name:'Cognac Suede', color:'Cognac', hex:'#a3673a', leather:'Suede', price:79},
+  {name:'Chestnut Heritage', color:'Chestnut', hex:'#6f4028', leather:'Full-grain', price:92},
+  {name:'Navy Standard', color:'Navy', hex:'#26344a', leather:'Full-grain', price:89},
+  {name:'Olive Suede', color:'Olive', hex:'#5b6248', leather:'Suede', price:79},
+  {name:'Cognac Nubuck', color:'Cognac', hex:'#a3673a', leather:'Nubuck', price:95},
+  {name:'Onyx Vegetable-tanned', color:'Black', hex:'#1c1b1a', leather:'Vegetable-tanned', price:88},
 ];
 
 const colors = [...new Set(straps.map(s=>s.color))];
@@ -521,7 +521,6 @@ function render(){
       <div class="strap-name">${s.name}</div>
       <div class="strap-meta">
         <span class="tag">${s.leather}</span>
-        <span class="tag">${s.size}</span>
       </div>
       <div class="strap-bottom">
         <span class="strap-price">$${s.price}</span>
