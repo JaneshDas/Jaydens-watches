@@ -257,6 +257,8 @@
   }
   .pill:hover{border-color:var(--muted);}
   .pill.sel{background:var(--ink); color:var(--paper); border-color:var(--ink);}
+  .pill-static{cursor:default; color:var(--muted);}
+  .pill-static:hover{border-color:var(--line);}
 
   .product-price{font-family:'Space Mono',monospace; font-size:1.8rem; margin:38px 0 10px;}
   .product-note{font-size:0.82rem; color:var(--muted); line-height:1.6; margin:0 0 24px; max-width:44ch;}
@@ -456,7 +458,7 @@
       <span class="eyebrow">Strap Library</span>
       <h2>Change the mood, keep the watch.</h2>
     </div>
-    <p>Filter by color and leather to find the one that fits. Each strap is handmade to order — one of a kind.</p>
+    <p>Filter by color, leather, and width to find the one that fits. Each strap is one of a kind.</p>
   </div>
 
   <div class="straps-layout">
@@ -468,6 +470,10 @@
       <div class="filter-group">
         <div class="filter-title">Leather</div>
         <div id="leatherFilters"></div>
+      </div>
+      <div class="filter-group">
+        <div class="filter-title">Width</div>
+        <div id="widthFilters"></div>
       </div>
       <button class="clear-all" id="clearAll">Clear all filters</button>
     </aside>
@@ -627,8 +633,9 @@ const straps = [
 
 const colors = [...new Set(straps.map(s=>s.color))];
 const leathers = [...new Set(straps.map(s=>s.leather))];
+const widths = [...new Set(straps.flatMap(s=>s.widths))].sort((a,b)=>parseInt(a)-parseInt(b));
 
-const active = {color:new Set(), leather:new Set()};
+const active = {color:new Set(), leather:new Set(), width:new Set()};
 
 function buildFilterGroup(containerId, values, category, withSwatch){
   const container = document.getElementById(containerId);
@@ -642,6 +649,7 @@ function buildFilterGroup(containerId, values, category, withSwatch){
 }
 buildFilterGroup('colorFilters', colors, 'color', true);
 buildFilterGroup('leatherFilters', leathers, 'leather', false);
+buildFilterGroup('widthFilters', widths, 'width', false);
 
 document.querySelectorAll('.filter-option input').forEach(cb=>{
   cb.addEventListener('change', e=>{
@@ -653,7 +661,7 @@ document.querySelectorAll('.filter-option input').forEach(cb=>{
 
 document.getElementById('clearAll').addEventListener('click', ()=>{
   document.querySelectorAll('.filter-option input').forEach(cb=>cb.checked=false);
-  active.color.clear(); active.leather.clear();
+  active.color.clear(); active.leather.clear(); active.width.clear();
   render();
 });
 
@@ -661,7 +669,8 @@ function render(){
   const grid = document.getElementById('strapGrid');
   const filtered = straps.filter(s=>
     (active.color.size===0 || active.color.has(s.color)) &&
-    (active.leather.size===0 || active.leather.has(s.leather))
+    (active.leather.size===0 || active.leather.has(s.leather)) &&
+    (active.width.size===0 || s.widths.some(w=>active.width.has(w)))
   );
   document.getElementById('resultCount').textContent = `${String(filtered.length).padStart(2,'0')} / ${straps.length} straps`;
   grid.innerHTML = '';
@@ -692,9 +701,6 @@ render();
 // ---------- PRODUCT / CART ----------
 // NOTE: change this to your real contact address so enquiries reach you.
 const OWNER_EMAIL = 'jaydenlau76@gmail.com';
-
-const lengthOptions = ['Short','Regular','Long','Extra long'];
-const lengthSurcharge = {'Short':0,'Regular':0,'Long':8,'Extra long':15};
 
 let cart = [];
 try{ cart = JSON.parse(localStorage.getItem('jw_cart')) || []; }catch(e){ cart = []; }
@@ -727,10 +733,6 @@ document.addEventListener('keydown', e=>{ if(e.key==='Escape' && overlay.classLi
 
 function openStrap(idx){
   const s = straps[idx];
-  const state = {width:s.widths[0], length:'Regular'};
-  const price = ()=> s.price + lengthSurcharge[state.length];
-  const pills = (opts,cat)=> opts.map(o=>
-    `<button class="pill ${state[cat]===o?'sel':''}" data-cat="${cat}" data-val="${o}">${o}</button>`).join('');
 
   openOverlay(`
     <div class="product">
@@ -741,31 +743,20 @@ function openStrap(idx){
         <div class="product-sub">${s.desc}</div>
 
         <div class="opt-group">
-          <div class="opt-label">Band width <span class="opt-value" data-lbl="width">${state.width}</span></div>
-          <div class="pill-row">${pills(s.widths,'width')}</div>
-        </div>
-        <div class="opt-group">
-          <div class="opt-label">Length <span class="opt-value" data-lbl="length">${state.length}</span></div>
-          <div class="pill-row">${pills(lengthOptions,'length')}</div>
+          <div class="opt-label">Available widths</div>
+          <div class="pill-row">${s.widths.map(w=>`<span class="pill pill-static">${w}</span>`).join('')}</div>
         </div>
 
-        <div class="product-price" data-price>$${price()}</div>
-        <p class="product-note">Handmade to order. No online checkout &mdash; add to your cart and send us an enquiry to confirm sizing, final price, and delivery to your location.</p>
+        <div class="product-price">$${s.price}</div>
+        <p class="product-note">One of a kind &mdash; only one in stock. No online checkout &mdash; add to your cart and send us an enquiry with your required width, and we'll confirm availability, final price, and delivery to your location.</p>
         <button class="btn-add" data-addstrap>Add to cart</button>
       </div>
     </div>`);
 
-  function refresh(){
-    overlayBody.querySelectorAll('[data-lbl]').forEach(el=> el.textContent = state[el.dataset.lbl]);
-    overlayBody.querySelector('[data-price]').textContent = '$'+price();
-    overlayBody.querySelectorAll('.pill').forEach(b=> b.classList.toggle('sel', state[b.dataset.cat]===b.dataset.val));
-  }
   overlayBody.onclick = e=>{
-    const pill = e.target.closest('.pill');
-    if(pill){ state[pill.dataset.cat] = pill.dataset.val; refresh(); return; }
     if(e.target.closest('[data-addstrap]')){
-      cart.push({type:'Strap', name:s.name, price:price(),
-        options:[`Leather: ${s.leather}`, `Width: ${state.width}`, `Length: ${state.length}`]});
+      cart.push({type:'Strap', name:s.name, price:s.price,
+        options:[`Leather: ${s.leather}`, `Available widths: ${s.widths.join(', ')}`]});
       saveCart(); openCart();
     }
   };
