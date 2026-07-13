@@ -5,284 +5,267 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Jayden's Watches</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --ink:#12161c;
-    --ink-2:#1b212b;
-    --bone:#ece6d8;
-    --bone-dim:#c9c2b1;
-    --brass:#c2984e;
-    --brass-bright:#e0b76b;
-    --steel:#3c4a5e;
-    --line: rgba(236,230,216,0.14);
-    --radius: 2px;
+    --paper:#f4f3ef;
+    --paper-2:#ebe9e2;
+    --ink:#16150f;
+    --ink-2:#2a2925;
+    --muted:#74736c;
+    --line:rgba(22,21,15,0.13);
+    --line-soft:rgba(22,21,15,0.07);
+    --blue:#274a72;
+    --blue-bright:#3f6da3;
+    --ok:#4f7a5b;
   }
   *{box-sizing:border-box;}
   html{scroll-behavior:smooth;}
   body{
     margin:0;
-    background:var(--ink);
-    color:var(--bone);
+    background:var(--paper);
+    color:var(--ink);
     font-family:'Inter',sans-serif;
+    font-weight:400;
     -webkit-font-smoothing:antialiased;
+    line-height:1.5;
   }
-  h1,h2,h3{
-    font-family:'Cormorant Garamond',serif;
-    font-weight:500;
-    letter-spacing:0.01em;
-    margin:0;
+  h1,h2,h3{margin:0; font-weight:300; letter-spacing:-0.02em; line-height:1.05;}
+  a{color:inherit; text-decoration:none;}
+  img,svg{display:block; max-width:100%;}
+  .mono{font-family:'Space Mono',monospace; letter-spacing:0.02em;}
+  .eyebrow{
+    font-family:'Space Mono',monospace;
+    font-size:0.7rem; letter-spacing:0.28em; text-transform:uppercase;
+    color:var(--muted);
   }
-  .mono{font-family:'Space Mono',monospace; letter-spacing:0.03em;}
-  a{color:inherit;}
-  img,svg{display:block;max-width:100%;}
+  ::selection{background:var(--blue); color:var(--paper);}
+  a:focus-visible, button:focus-visible, input:focus-visible{
+    outline:1.5px solid var(--blue-bright); outline-offset:3px;
+  }
 
   /* ---------- NAV ---------- */
   nav{
     position:sticky; top:0; z-index:50;
-    display:flex; align-items:center; justify-content:space-between;
-    padding:22px 6vw;
-    background:rgba(18,22,28,0.86);
-    backdrop-filter:blur(10px);
+    display:grid; grid-template-columns:1fr auto 1fr; align-items:center;
+    padding:20px 5vw;
+    background:rgba(244,243,239,0.82);
+    backdrop-filter:blur(12px);
     border-bottom:1px solid var(--line);
   }
-  .brand{
-    font-family:'Cormorant Garamond',serif;
-    font-size:1.5rem;
-    letter-spacing:0.04em;
-    display:flex; align-items:baseline; gap:8px;
+  .nav-left, .nav-right{
+    display:flex; gap:30px;
+    font-size:0.74rem; letter-spacing:0.16em; text-transform:uppercase; color:var(--muted);
   }
-  .brand em{
-    font-style:italic; color:var(--brass);
+  .nav-right{justify-content:flex-end;}
+  .nav-left a:hover, .nav-right a:hover{color:var(--ink);}
+  .wordmark{
+    text-align:center; line-height:1;
+    font-weight:400; letter-spacing:0.36em;
+    font-size:1.05rem; text-transform:uppercase; padding-left:0.36em;
   }
-  .navlinks{display:flex; gap:36px; font-size:0.82rem; letter-spacing:0.12em; text-transform:uppercase;}
-  .navlinks a{text-decoration:none; color:var(--bone-dim); position:relative; padding-bottom:4px;}
-  .navlinks a:hover{color:var(--brass-bright);}
-  .navlinks a:focus-visible, a:focus-visible, button:focus-visible, input:focus-visible{
-    outline:2px solid var(--brass-bright); outline-offset:3px;
+  .wordmark small{
+    display:block; margin-top:5px;
+    font-family:'Space Mono',monospace; font-weight:400;
+    font-size:0.56rem; letter-spacing:0.42em; color:var(--muted); padding-left:0.42em;
+  }
+  @media (max-width:760px){
+    nav{grid-template-columns:1fr auto 1fr;}
+    .nav-left{display:none;}
   }
 
   /* ---------- HERO ---------- */
   .hero{
-    display:grid;
-    grid-template-columns: 1.1fr 0.9fr;
-    align-items:center;
-    gap:40px;
-    padding:9vh 6vw 10vh;
+    display:grid; grid-template-columns:1fr 1fr; align-items:center; gap:40px;
+    padding:12vh 5vw 13vh;
     border-bottom:1px solid var(--line);
-    overflow:hidden;
   }
-  .hero-eyebrow{
-    font-size:0.75rem; letter-spacing:0.22em; text-transform:uppercase;
-    color:var(--brass); margin-bottom:22px; display:block;
-  }
+  .hero .eyebrow{margin-bottom:28px; display:block;}
   .hero h1{
-    font-size:clamp(2.6rem, 5.2vw, 4.6rem);
-    line-height:1.03;
-    color:var(--bone);
+    font-size:clamp(2.8rem, 6vw, 5.6rem);
+    max-width:9ch;
   }
-  .hero h1 i{color:var(--brass-bright); font-style:italic;}
+  .hero h1 em{font-style:italic; color:var(--blue);}
   .hero p{
-    max-width:440px;
-    margin-top:26px;
-    color:var(--bone-dim);
-    font-size:1.02rem;
-    line-height:1.65;
+    max-width:400px; margin-top:30px; color:var(--muted); font-size:1.02rem; line-height:1.7;
   }
-  .hero-ctas{display:flex; gap:18px; margin-top:38px;}
+  .hero-ctas{display:flex; gap:14px; margin-top:40px; flex-wrap:wrap;}
   .btn{
-    padding:14px 28px;
-    font-size:0.8rem;
-    letter-spacing:0.1em;
-    text-transform:uppercase;
-    text-decoration:none;
-    border-radius:var(--radius);
-    cursor:pointer;
-    border:1px solid var(--brass);
-    transition:all 0.25s ease;
-    font-family:'Inter',sans-serif;
-    font-weight:500;
+    display:inline-block;
+    padding:14px 26px; font-size:0.72rem; letter-spacing:0.16em; text-transform:uppercase;
+    border:1px solid var(--ink); cursor:pointer; transition:all 0.22s ease;
+    font-family:'Inter',sans-serif; font-weight:500; background:transparent; color:var(--ink);
   }
-  .btn-solid{background:var(--brass); color:var(--ink);}
-  .btn-solid:hover{background:var(--brass-bright); border-color:var(--brass-bright);}
-  .btn-ghost{background:transparent; color:var(--bone);}
-  .btn-ghost:hover{border-color:var(--bone); background:rgba(236,230,216,0.05);}
+  .btn-solid{background:var(--ink); color:var(--paper);}
+  .btn-solid:hover{background:var(--blue); border-color:var(--blue);}
+  .btn-ghost:hover{background:var(--ink); color:var(--paper);}
 
   .hero-clock-wrap{display:flex; justify-content:center; align-items:center; position:relative;}
   .hero-clock-wrap::before{
-    content:"";
-    position:absolute;
-    width:120%; height:120%;
-    background:radial-gradient(circle, rgba(194,152,78,0.14), transparent 65%);
+    content:""; position:absolute; width:118%; height:118%;
+    background:radial-gradient(circle, rgba(39,74,114,0.08), transparent 66%);
   }
-  #heroClock{width:min(78%, 380px); position:relative; z-index:2;}
-  .hand{transform-origin:200px 200px;}
+  #heroClock{width:min(80%, 400px); position:relative; z-index:2;
+    filter:drop-shadow(0 30px 55px rgba(22,21,15,0.14));}
+
+  /* ---------- VALUES ---------- */
+  .values{
+    padding:9vh 5vw; border-bottom:1px solid var(--line);
+    display:grid; grid-template-columns:repeat(4,1fr); gap:1px;
+    background:var(--line-soft);
+  }
+  .value{background:var(--paper); padding:6px 26px 6px 0;}
+  .value .num{font-family:'Space Mono',monospace; font-size:0.7rem; color:var(--blue); letter-spacing:0.1em;}
+  .value h3{font-size:1.15rem; margin:14px 0 8px; letter-spacing:-0.01em;}
+  .value p{font-size:0.86rem; color:var(--muted); line-height:1.6; margin:0;}
+  @media (max-width:760px){.values{grid-template-columns:1fr 1fr;}}
 
   /* ---------- SECTION SHELL ---------- */
-  section{padding:11vh 6vw;}
+  section{padding:12vh 5vw;}
   .section-head{
-    display:flex; justify-content:space-between; align-items:flex-end;
-    margin-bottom:56px; gap:24px; flex-wrap:wrap;
-    border-bottom:1px solid var(--line);
-    padding-bottom:28px;
+    display:flex; justify-content:space-between; align-items:flex-end; gap:24px; flex-wrap:wrap;
+    margin-bottom:60px; padding-bottom:26px; border-bottom:1px solid var(--line);
   }
-  .section-head .eyebrow{
-    font-size:0.75rem; letter-spacing:0.22em; text-transform:uppercase; color:var(--brass);
-    display:block; margin-bottom:10px;
-  }
-  .section-head h2{font-size:clamp(2rem,3.4vw,2.8rem);}
-  .section-head p{color:var(--bone-dim); max-width:420px; font-size:0.95rem; line-height:1.6;}
+  .section-head .eyebrow{display:block; margin-bottom:16px;}
+  .section-head h2{font-size:clamp(2rem,4vw,3.2rem);}
+  .section-head p{color:var(--muted); max-width:380px; font-size:0.95rem; line-height:1.65;}
 
   /* ---------- WATCHES ---------- */
-  #watches{background:var(--ink-2);}
+  #watches{background:var(--paper-2);}
   .watch-grid{
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:2px;
-    background:var(--line);
-    border:1px solid var(--line);
+    display:grid; grid-template-columns:1fr 1fr; gap:1px;
+    background:var(--line); border:1px solid var(--line);
   }
   .watch-card{
-    background:var(--ink-2);
-    padding:52px 44px;
-    display:flex; flex-direction:column; align-items:center; text-align:center;
+    background:var(--paper-2); padding:64px 48px 52px;
+    display:flex; flex-direction:column; align-items:center; text-align:center; position:relative;
   }
-  .watch-face-svg{width:220px; margin-bottom:34px; filter:drop-shadow(0 20px 40px rgba(0,0,0,0.45));}
-  .watch-card h3{font-size:1.9rem; color:var(--bone);}
-  .watch-tagline{color:var(--brass); font-size:0.85rem; letter-spacing:0.06em; margin-top:6px; font-style:italic; font-family:'Cormorant Garamond',serif;}
-  .watch-specs{
-    margin-top:28px; width:100%; max-width:320px;
-    display:flex; flex-direction:column; gap:10px;
+  .watch-status{
+    position:absolute; top:24px; left:24px;
+    font-family:'Space Mono',monospace; font-size:0.64rem; letter-spacing:0.14em; text-transform:uppercase;
+    color:var(--muted); display:flex; align-items:center; gap:8px;
   }
+  .watch-status::before{content:""; width:6px; height:6px; border-radius:50%; background:var(--ok);}
+  .watch-status.waitlist::before{background:var(--muted);}
+  .watch-ref{
+    position:absolute; top:24px; right:24px;
+    font-family:'Space Mono',monospace; font-size:0.64rem; letter-spacing:0.1em; color:var(--muted);
+  }
+  .watch-face-svg{width:230px; margin:14px 0 36px;}
+  .watch-card h3{font-size:2rem;}
+  .watch-tagline{color:var(--blue); font-size:0.9rem; margin-top:10px; font-style:italic;}
+  .watch-specs{margin-top:32px; width:100%; max-width:320px; display:flex; flex-direction:column; gap:0;}
   .spec-row{
-    display:flex; justify-content:space-between;
-    font-size:0.8rem; color:var(--bone-dim);
-    border-bottom:1px dashed var(--line);
-    padding-bottom:8px;
+    display:flex; justify-content:space-between; font-size:0.8rem; color:var(--muted);
+    border-top:1px solid var(--line-soft); padding:11px 0;
   }
-  .spec-row span:last-child{color:var(--bone); font-family:'Space Mono',monospace;}
-  .watch-price{
-    margin-top:30px; font-family:'Space Mono',monospace; font-size:1.5rem; color:var(--brass-bright);
-  }
-  .watch-card .btn{margin-top:24px;}
+  .spec-row:last-child{border-bottom:1px solid var(--line-soft);}
+  .spec-row span:last-child{color:var(--ink); font-family:'Space Mono',monospace;}
+  .watch-price{margin-top:32px; font-family:'Space Mono',monospace; font-size:1.4rem;}
+  .watch-card .btn{margin-top:26px;}
 
   /* ---------- STRAPS ---------- */
-  .straps-layout{
-    display:grid;
-    grid-template-columns:240px 1fr;
-    gap:56px;
-    align-items:start;
-  }
-  .filter-panel{
-    position:sticky; top:100px;
-    border:1px solid var(--line);
-    padding:26px 22px;
-    border-radius:var(--radius);
-  }
-  .filter-group{margin-bottom:30px;}
-  .filter-group:last-child{margin-bottom:0;}
+  .straps-layout{display:grid; grid-template-columns:230px 1fr; gap:56px; align-items:start;}
+  .filter-panel{position:sticky; top:96px;}
+  .filter-group{margin-bottom:32px; padding-bottom:32px; border-bottom:1px solid var(--line-soft);}
+  .filter-group:last-of-type{border-bottom:none;}
   .filter-title{
-    font-size:0.72rem; letter-spacing:0.16em; text-transform:uppercase;
-    color:var(--brass); margin-bottom:14px; display:flex; justify-content:space-between; align-items:center;
-  }
-  .filter-title button{
-    background:none; border:none; color:var(--bone-dim); font-size:0.68rem; letter-spacing:0.08em;
-    cursor:pointer; text-decoration:underline; padding:0; font-family:'Inter',sans-serif;
+    font-family:'Space Mono',monospace; font-size:0.68rem; letter-spacing:0.18em; text-transform:uppercase;
+    color:var(--muted); margin-bottom:16px;
   }
   .filter-option{
-    display:flex; align-items:center; gap:10px;
-    margin-bottom:10px; cursor:pointer; font-size:0.86rem; color:var(--bone-dim);
+    display:flex; align-items:center; gap:11px; margin-bottom:12px; cursor:pointer;
+    font-size:0.88rem; color:var(--ink-2);
   }
-  .filter-option:hover{color:var(--bone);}
+  .filter-option:hover{color:var(--ink);}
   .filter-option input{
-    appearance:none; width:15px; height:15px; border:1px solid var(--bone-dim);
-    border-radius:3px; position:relative; cursor:pointer; flex-shrink:0; margin:0;
+    appearance:none; width:14px; height:14px; border:1px solid var(--muted);
+    position:relative; cursor:pointer; flex-shrink:0; margin:0;
   }
-  .filter-option input:checked{background:var(--brass); border-color:var(--brass);}
+  .filter-option input:checked{background:var(--ink); border-color:var(--ink);}
   .filter-option input:checked::after{
     content:"✓"; position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
-    font-size:10px; color:var(--ink); line-height:1;
+    font-size:9px; color:var(--paper); line-height:1;
   }
-  .swatch{
-    width:15px; height:15px; border-radius:50%; border:1px solid rgba(236,230,216,0.3); flex-shrink:0;
-  }
+  .swatch{width:14px; height:14px; border-radius:50%; border:1px solid var(--line); flex-shrink:0;}
   .clear-all{
-    margin-top:8px; background:none; border:1px solid var(--line); color:var(--bone-dim);
-    padding:10px 14px; width:100%; font-size:0.72rem; letter-spacing:0.08em; text-transform:uppercase;
-    cursor:pointer; border-radius:var(--radius); font-family:'Inter',sans-serif;
+    margin-top:4px; background:none; border:1px solid var(--line); color:var(--muted);
+    padding:11px 14px; width:100%; font-family:'Space Mono',monospace;
+    font-size:0.66rem; letter-spacing:0.12em; text-transform:uppercase; cursor:pointer;
   }
-  .clear-all:hover{border-color:var(--brass); color:var(--brass-bright);}
+  .clear-all:hover{border-color:var(--ink); color:var(--ink);}
 
-  .results-bar{
-    display:flex; justify-content:space-between; align-items:center;
-    margin-bottom:24px; font-size:0.8rem; color:var(--bone-dim);
-  }
-  .strap-grid{
-    display:grid;
-    grid-template-columns:repeat(auto-fill, minmax(230px, 1fr));
-    gap:22px;
-  }
+  .results-bar{margin-bottom:26px; font-family:'Space Mono',monospace; font-size:0.76rem; color:var(--muted);}
+  .strap-grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(228px,1fr)); gap:1px;
+    background:var(--line); border:1px solid var(--line);}
   .strap-card{
-    border:1px solid var(--line);
-    padding:26px 22px 22px;
-    border-radius:var(--radius);
-    transition:border-color 0.2s ease, transform 0.2s ease;
+    background:var(--paper); padding:28px 24px 24px;
+    transition:background 0.2s ease;
   }
-  .strap-card:hover{border-color:var(--brass); transform:translateY(-3px);}
-  .strap-illustration{height:110px; margin-bottom:18px;}
-  .strap-name{font-size:1.15rem; color:var(--bone);}
-  .strap-meta{display:flex; gap:10px; flex-wrap:wrap; margin-top:8px;}
+  .strap-card:hover{background:var(--paper-2);}
+  .strap-illustration{height:112px; margin-bottom:20px;}
+  .strap-name{font-size:1.1rem; font-weight:400;}
+  .strap-meta{display:flex; gap:8px; flex-wrap:wrap; margin-top:10px;}
   .tag{
-    font-size:0.68rem; letter-spacing:0.05em; text-transform:uppercase;
-    color:var(--bone-dim); border:1px solid var(--line); padding:3px 8px; border-radius:12px;
+    font-family:'Space Mono',monospace; font-size:0.62rem; letter-spacing:0.06em; text-transform:uppercase;
+    color:var(--muted); border:1px solid var(--line); padding:3px 8px;
   }
-  .strap-bottom{display:flex; justify-content:space-between; align-items:center; margin-top:18px;}
-  .strap-price{font-family:'Space Mono',monospace; color:var(--brass-bright); font-size:1.05rem;}
+  .strap-bottom{display:flex; justify-content:space-between; align-items:center; margin-top:20px;}
+  .strap-price{font-family:'Space Mono',monospace; font-size:1rem;}
   .add-btn{
-    background:none; border:1px solid var(--bone-dim); color:var(--bone);
-    font-size:0.7rem; letter-spacing:0.06em; text-transform:uppercase; padding:8px 14px;
-    border-radius:var(--radius); cursor:pointer;
+    background:none; border:1px solid var(--ink); color:var(--ink);
+    font-family:'Space Mono',monospace; font-size:0.62rem; letter-spacing:0.1em; text-transform:uppercase;
+    padding:8px 13px; cursor:pointer; transition:all 0.2s ease;
   }
-  .add-btn:hover{border-color:var(--brass); color:var(--brass-bright);}
-  .no-results{
-    grid-column:1/-1; text-align:center; padding:60px 20px; color:var(--bone-dim);
-  }
-  .no-results h3{color:var(--bone); margin-bottom:10px; font-size:1.4rem;}
+  .add-btn:hover{background:var(--ink); color:var(--paper);}
+  .no-results{grid-column:1/-1; text-align:center; padding:70px 20px; color:var(--muted); background:var(--paper);}
+  .no-results h3{color:var(--ink); margin-bottom:10px; font-size:1.4rem;}
 
   footer{
-    padding:40px 6vw; border-top:1px solid var(--line);
-    display:flex; justify-content:space-between; align-items:center;
-    color:var(--bone-dim); font-size:0.8rem; flex-wrap:wrap; gap:12px;
+    padding:56px 5vw; border-top:1px solid var(--line);
+    display:flex; justify-content:space-between; align-items:flex-end; gap:24px; flex-wrap:wrap;
+    color:var(--muted); font-size:0.8rem;
   }
+  footer .wordmark{text-align:left; padding-left:0; letter-spacing:0.3em;}
+  footer .wordmark small{padding-left:0;}
+  .foot-links{display:flex; gap:26px; font-family:'Space Mono',monospace; font-size:0.68rem;
+    letter-spacing:0.1em; text-transform:uppercase;}
+  .foot-links a:hover{color:var(--ink);}
 
   @media (max-width:860px){
     .hero{grid-template-columns:1fr; text-align:center;}
+    .hero h1{max-width:none;}
     .hero p{margin-left:auto; margin-right:auto;}
     .hero-ctas{justify-content:center;}
-    .hero-clock-wrap{order:-1;}
+    .hero-clock-wrap{order:-1; margin-bottom:10px;}
     .watch-grid{grid-template-columns:1fr;}
     .straps-layout{grid-template-columns:1fr;}
     .filter-panel{position:relative; top:0;}
   }
   @media (prefers-reduced-motion: reduce){
-    .hand, * {transition:none !important; animation:none !important;}
+    .hand, *{transition:none !important; animation:none !important;}
   }
 </style>
 </head>
 <body>
 
 <nav>
-  <div class="brand">JAYDEN'S <em>Watches</em></div>
-  <div class="navlinks">
+  <div class="nav-left">
     <a href="#watches">Watches</a>
     <a href="#straps">Straps</a>
+  </div>
+  <div class="wordmark">Jayden's<small>Watches</small></div>
+  <div class="nav-right">
+    <a href="#straps">Configure</a>
+    <a href="#" aria-label="Cart">Cart (0)</a>
   </div>
 </nav>
 
 <section class="hero">
   <div>
-    <span class="hero-eyebrow">Precision · Since the first wind</span>
-    <h1>Time, worn<br><i>on your terms.</i></h1>
+    <span class="eyebrow">Est. 2026 · Toronto</span>
+    <h1>Time, worn <em>your way.</em></h1>
     <p>Two watches built to last a lifetime, and a library of straps to change their character by the day. Every hand moves true — everything else is up to you.</p>
     <div class="hero-ctas">
       <a href="#watches" class="btn btn-solid">View watches</a>
@@ -291,17 +274,40 @@
   </div>
   <div class="hero-clock-wrap">
     <svg id="heroClock" viewBox="0 0 400 400">
-      <circle cx="200" cy="200" r="188" fill="#161b22" stroke="#c2984e" stroke-width="1.5"/>
-      <circle cx="200" cy="200" r="164" fill="none" stroke="rgba(236,230,216,0.18)" stroke-width="1"/>
+      <circle cx="200" cy="200" r="192" fill="#faf9f6" stroke="#16150f" stroke-width="1"/>
+      <circle cx="200" cy="200" r="168" fill="none" stroke="rgba(22,21,15,0.12)" stroke-width="1"/>
       <g id="ticks"></g>
-      <g id="numerals" font-family="Cormorant Garamond, serif" font-size="22" fill="#ece6d8" text-anchor="middle"></g>
-      <line id="hourHand" class="hand" x1="200" y1="200" x2="200" y2="120" stroke="#ece6d8" stroke-width="6" stroke-linecap="round"/>
-      <line id="minHand" class="hand" x1="200" y1="200" x2="200" y2="75" stroke="#ece6d8" stroke-width="4" stroke-linecap="round"/>
-      <line id="secHand" class="hand" x1="200" y1="215" x2="200" y2="65" stroke="#c2984e" stroke-width="2" stroke-linecap="round"/>
-      <circle cx="200" cy="200" r="7" fill="#c2984e"/>
+      <g id="numerals" font-family="Inter, sans-serif" font-weight="300" font-size="21" fill="#16150f" text-anchor="middle"></g>
+      <line id="hourHand" class="hand" x1="200" y1="200" x2="200" y2="122" stroke="#16150f" stroke-width="5" stroke-linecap="round"/>
+      <line id="minHand" class="hand" x1="200" y1="200" x2="200" y2="78" stroke="#16150f" stroke-width="3" stroke-linecap="round"/>
+      <line id="secHand" class="hand" x1="200" y1="216" x2="200" y2="70" stroke="#274a72" stroke-width="1.6" stroke-linecap="round"/>
+      <circle cx="200" cy="200" r="6" fill="#274a72"/>
     </svg>
   </div>
 </section>
+
+<div class="values">
+  <div class="value">
+    <div class="num">01</div>
+    <h3>Hand-finished</h3>
+    <p>Every case is machined, tested, and finished by hand before it leaves the bench.</p>
+  </div>
+  <div class="value">
+    <div class="num">02</div>
+    <h3>Swiss automatic</h3>
+    <p>Self-winding movements with up to a 48-hour power reserve. No batteries, ever.</p>
+  </div>
+  <div class="value">
+    <div class="num">03</div>
+    <h3>Tool-free straps</h3>
+    <p>Quick-release spring bars. Swap the strap in seconds, no watchmaker required.</p>
+  </div>
+  <div class="value">
+    <div class="num">04</div>
+    <h3>Lifetime service</h3>
+    <p>We service what we make. Send it in whenever it needs care — for as long as you own it.</p>
+  </div>
+</div>
 
 <section id="watches">
   <div class="section-head">
@@ -315,25 +321,38 @@
   <div class="watch-grid">
     <!-- Watch 1: Field -->
     <div class="watch-card">
+      <div class="watch-status">In stock</div>
+      <div class="watch-ref">Ref. 01.F</div>
       <svg class="watch-face-svg" viewBox="0 0 220 220">
-        <circle cx="110" cy="110" r="100" fill="#1b212b" stroke="#c2984e" stroke-width="3"/>
-        <circle cx="110" cy="110" r="82" fill="#ece6d8"/>
-        <g stroke="#12161c" stroke-width="2">
-          <line x1="110" y1="34" x2="110" y2="46"/>
-          <line x1="110" y1="174" x2="110" y2="186"/>
-          <line x1="34" y1="110" x2="46" y2="110"/>
-          <line x1="174" y1="110" x2="186" y2="110"/>
+        <circle cx="110" cy="110" r="101" fill="#e6e3da" stroke="#16150f" stroke-width="1.5"/>
+        <circle cx="110" cy="110" r="90" fill="#faf9f6"/>
+        <g stroke="#16150f" stroke-width="2">
+          <line x1="110" y1="28" x2="110" y2="42"/>
+          <line x1="110" y1="178" x2="110" y2="192"/>
+          <line x1="28" y1="110" x2="42" y2="110"/>
+          <line x1="178" y1="110" x2="192" y2="110"/>
         </g>
-        <line x1="110" y1="110" x2="110" y2="66" stroke="#12161c" stroke-width="5" stroke-linecap="round"/>
-        <line x1="110" y1="110" x2="145" y2="110" stroke="#12161c" stroke-width="4" stroke-linecap="round"/>
-        <circle cx="110" cy="110" r="5" fill="#c2984e"/>
-        <text x="110" y="145" text-anchor="middle" font-family="Space Mono, monospace" font-size="9" fill="#12161c" letter-spacing="1">MERIDIAN</text>
+        <g stroke="rgba(22,21,15,0.35)" stroke-width="1">
+          <line x1="110" y1="30" x2="110" y2="38" transform="rotate(30 110 110)"/>
+          <line x1="110" y1="30" x2="110" y2="38" transform="rotate(60 110 110)"/>
+          <line x1="110" y1="30" x2="110" y2="38" transform="rotate(120 110 110)"/>
+          <line x1="110" y1="30" x2="110" y2="38" transform="rotate(150 110 110)"/>
+          <line x1="110" y1="30" x2="110" y2="38" transform="rotate(210 110 110)"/>
+          <line x1="110" y1="30" x2="110" y2="38" transform="rotate(240 110 110)"/>
+          <line x1="110" y1="30" x2="110" y2="38" transform="rotate(300 110 110)"/>
+          <line x1="110" y1="30" x2="110" y2="38" transform="rotate(330 110 110)"/>
+        </g>
+        <line x1="110" y1="110" x2="110" y2="64" stroke="#16150f" stroke-width="4" stroke-linecap="round"/>
+        <line x1="110" y1="110" x2="148" y2="110" stroke="#16150f" stroke-width="3" stroke-linecap="round"/>
+        <line x1="110" y1="118" x2="110" y2="56" stroke="#274a72" stroke-width="1.4" stroke-linecap="round"/>
+        <circle cx="110" cy="110" r="4" fill="#274a72"/>
+        <text x="110" y="86" text-anchor="middle" font-family="Inter, sans-serif" font-weight="500" font-size="8" fill="#16150f" letter-spacing="2">JAYDEN'S</text>
       </svg>
       <h3>The Field</h3>
       <div class="watch-tagline">For days that don't stay behind a desk</div>
       <div class="watch-specs">
         <div class="spec-row"><span>Case</span><span>39mm brushed steel</span></div>
-        <div class="spec-row"><span>Movement</span><span>Automatic, 42h reserve</span></div>
+        <div class="spec-row"><span>Movement</span><span>Automatic · 42h</span></div>
         <div class="spec-row"><span>Water resistance</span><span>100m</span></div>
         <div class="spec-row"><span>Lug width</span><span>20mm</span></div>
       </div>
@@ -343,25 +362,38 @@
 
     <!-- Watch 2: Noir -->
     <div class="watch-card">
+      <div class="watch-status waitlist">Waitlist</div>
+      <div class="watch-ref">Ref. 02.N</div>
       <svg class="watch-face-svg" viewBox="0 0 220 220">
-        <circle cx="110" cy="110" r="100" fill="#0d0f13" stroke="#e0b76b" stroke-width="3"/>
-        <circle cx="110" cy="110" r="82" fill="#181c22"/>
-        <g stroke="#c2984e" stroke-width="2">
-          <line x1="110" y1="34" x2="110" y2="46"/>
-          <line x1="110" y1="174" x2="110" y2="186"/>
-          <line x1="34" y1="110" x2="46" y2="110"/>
-          <line x1="174" y1="110" x2="186" y2="110"/>
+        <circle cx="110" cy="110" r="101" fill="#1c1b16" stroke="#16150f" stroke-width="1.5"/>
+        <circle cx="110" cy="110" r="90" fill="#111017"/>
+        <g stroke="#3f6da3" stroke-width="2">
+          <line x1="110" y1="28" x2="110" y2="42"/>
+          <line x1="110" y1="178" x2="110" y2="192"/>
+          <line x1="28" y1="110" x2="42" y2="110"/>
+          <line x1="178" y1="110" x2="192" y2="110"/>
         </g>
-        <line x1="110" y1="110" x2="110" y2="66" stroke="#ece6d8" stroke-width="5" stroke-linecap="round"/>
-        <line x1="110" y1="110" x2="145" y2="110" stroke="#ece6d8" stroke-width="4" stroke-linecap="round"/>
-        <circle cx="110" cy="110" r="5" fill="#e0b76b"/>
-        <text x="110" y="145" text-anchor="middle" font-family="Space Mono, monospace" font-size="9" fill="#e0b76b" letter-spacing="1">MERIDIAN</text>
+        <g stroke="rgba(236,233,226,0.3)" stroke-width="1">
+          <line x1="110" y1="30" x2="110" y2="38" transform="rotate(30 110 110)"/>
+          <line x1="110" y1="30" x2="110" y2="38" transform="rotate(60 110 110)"/>
+          <line x1="110" y1="30" x2="110" y2="38" transform="rotate(120 110 110)"/>
+          <line x1="110" y1="30" x2="110" y2="38" transform="rotate(150 110 110)"/>
+          <line x1="110" y1="30" x2="110" y2="38" transform="rotate(210 110 110)"/>
+          <line x1="110" y1="30" x2="110" y2="38" transform="rotate(240 110 110)"/>
+          <line x1="110" y1="30" x2="110" y2="38" transform="rotate(300 110 110)"/>
+          <line x1="110" y1="30" x2="110" y2="38" transform="rotate(330 110 110)"/>
+        </g>
+        <line x1="110" y1="110" x2="110" y2="64" stroke="#ece9e2" stroke-width="4" stroke-linecap="round"/>
+        <line x1="110" y1="110" x2="148" y2="110" stroke="#ece9e2" stroke-width="3" stroke-linecap="round"/>
+        <line x1="110" y1="118" x2="110" y2="56" stroke="#3f6da3" stroke-width="1.4" stroke-linecap="round"/>
+        <circle cx="110" cy="110" r="4" fill="#3f6da3"/>
+        <text x="110" y="86" text-anchor="middle" font-family="Inter, sans-serif" font-weight="500" font-size="8" fill="#3f6da3" letter-spacing="2">JAYDEN'S</text>
       </svg>
       <h3>The Noir</h3>
       <div class="watch-tagline">For rooms with dimmer switches</div>
       <div class="watch-specs">
         <div class="spec-row"><span>Case</span><span>40mm black PVD steel</span></div>
-        <div class="spec-row"><span>Movement</span><span>Automatic, 48h reserve</span></div>
+        <div class="spec-row"><span>Movement</span><span>Automatic · 48h</span></div>
         <div class="spec-row"><span>Water resistance</span><span>50m</span></div>
         <div class="spec-row"><span>Lug width</span><span>20mm</span></div>
       </div>
@@ -399,7 +431,7 @@
 
     <div>
       <div class="results-bar">
-        <span id="resultCount" class="mono"></span>
+        <span id="resultCount"></span>
       </div>
       <div class="strap-grid" id="strapGrid"></div>
     </div>
@@ -407,30 +439,36 @@
 </section>
 
 <footer>
-  <div>© 2026 Jayden's Watches</div>
-  <div class="mono">Toronto, Canada</div>
+  <div class="wordmark">Jayden's<small>Watches</small></div>
+  <div class="foot-links">
+    <a href="#watches">Watches</a>
+    <a href="#straps">Straps</a>
+    <a href="#">Journal</a>
+    <a href="#">Contact</a>
+  </div>
+  <div class="mono">© 2026 · Toronto, Canada</div>
 </footer>
 
 <script>
 // ---------- HERO CLOCK ----------
 const ticks = document.getElementById('ticks');
 const numerals = document.getElementById('numerals');
-const romans = ['XII','I','II','III','IV','V','VI','VII','VIII','IX','X','XI'];
+const marks = ['12','1','2','3','4','5','6','7','8','9','10','11'];
 for(let i=0;i<12;i++){
   const angle = (i*30) * Math.PI/180;
-  const x1 = 200 + 172*Math.sin(angle), y1 = 200 - 172*Math.cos(angle);
-  const x2 = 200 + 184*Math.sin(angle), y2 = 200 - 184*Math.cos(angle);
+  const x1 = 200 + 174*Math.sin(angle), y1 = 200 - 174*Math.cos(angle);
+  const x2 = 200 + 186*Math.sin(angle), y2 = 200 - 186*Math.cos(angle);
   const line = document.createElementNS('http://www.w3.org/2000/svg','line');
   line.setAttribute('x1',x1); line.setAttribute('y1',y1);
   line.setAttribute('x2',x2); line.setAttribute('y2',y2);
-  line.setAttribute('stroke', i%3===0 ? '#c2984e' : 'rgba(236,230,216,0.35)');
-  line.setAttribute('stroke-width', i%3===0 ? 3 : 1.5);
+  line.setAttribute('stroke', i%3===0 ? '#16150f' : 'rgba(22,21,15,0.3)');
+  line.setAttribute('stroke-width', i%3===0 ? 2.5 : 1);
   ticks.appendChild(line);
 
-  const nx = 200 + 145*Math.sin(angle), ny = 200 - 145*Math.cos(angle) + 8;
+  const nx = 200 + 148*Math.sin(angle), ny = 200 - 148*Math.cos(angle) + 7;
   const text = document.createElementNS('http://www.w3.org/2000/svg','text');
   text.setAttribute('x', nx); text.setAttribute('y', ny);
-  text.textContent = romans[i];
+  text.textContent = marks[i];
   numerals.appendChild(text);
 }
 function tickClock(){
@@ -494,17 +532,17 @@ document.getElementById('clearAll').addEventListener('click', ()=>{
 });
 
 function strapSvg(hex, leather){
-  const texture = leather === 'Suede' ? 0.55 : leather === 'Shell Cordovan' ? 1 : 0.85;
+  const texture = leather === 'Suede' ? 0.6 : leather === 'Shell Cordovan' ? 1 : 0.88;
   return `
   <svg class="strap-illustration" viewBox="0 0 220 110">
     <rect x="30" y="10" width="160" height="90" rx="14" fill="${hex}" opacity="${texture}"/>
-    <rect x="30" y="10" width="160" height="90" rx="14" fill="none" stroke="rgba(236,230,216,0.25)" stroke-width="1.5" stroke-dasharray="4 3"/>
-    <circle cx="52" cy="22" r="2.4" fill="rgba(236,230,216,0.4)"/>
-    <circle cx="52" cy="88" r="2.4" fill="rgba(236,230,216,0.4)"/>
-    <circle cx="168" cy="22" r="2.4" fill="rgba(236,230,216,0.4)"/>
-    <circle cx="168" cy="88" r="2.4" fill="rgba(236,230,216,0.4)"/>
-    <rect x="8" y="42" width="26" height="26" rx="6" fill="#20242b" stroke="#c2984e" stroke-width="1.5"/>
-    <rect x="186" y="42" width="26" height="26" rx="6" fill="#20242b" stroke="#c2984e" stroke-width="1.5"/>
+    <rect x="30" y="10" width="160" height="90" rx="14" fill="none" stroke="rgba(22,21,15,0.28)" stroke-width="1.2" stroke-dasharray="4 3"/>
+    <circle cx="52" cy="22" r="2.2" fill="rgba(250,249,246,0.65)"/>
+    <circle cx="52" cy="88" r="2.2" fill="rgba(250,249,246,0.65)"/>
+    <circle cx="168" cy="22" r="2.2" fill="rgba(250,249,246,0.65)"/>
+    <circle cx="168" cy="88" r="2.2" fill="rgba(250,249,246,0.65)"/>
+    <rect x="8" y="42" width="26" height="26" rx="5" fill="#d9d6cd" stroke="#16150f" stroke-width="1.2"/>
+    <rect x="186" y="42" width="26" height="26" rx="5" fill="#d9d6cd" stroke="#16150f" stroke-width="1.2"/>
   </svg>`;
 }
 
@@ -515,7 +553,7 @@ function render(){
     (active.leather.size===0 || active.leather.has(s.leather)) &&
     (active.size.size===0 || active.size.has(s.size))
   );
-  document.getElementById('resultCount').textContent = `${filtered.length} strap${filtered.length!==1?'s':''} found`;
+  document.getElementById('resultCount').textContent = `${String(filtered.length).padStart(2,'0')} / ${straps.length} straps`;
   grid.innerHTML = '';
   if(filtered.length===0){
     grid.innerHTML = `<div class="no-results"><h3>No straps match</h3><p>Try clearing a filter to see more options.</p></div>`;
@@ -533,7 +571,7 @@ function render(){
       </div>
       <div class="strap-bottom">
         <span class="strap-price">$${s.price}</span>
-        <button class="add-btn">Add to cart</button>
+        <button class="add-btn">Add</button>
       </div>
     `;
     grid.appendChild(card);
