@@ -440,22 +440,22 @@ setInterval(tickClock, 1000);
 
 // ---------- STRAP DATA ----------
 const straps = [
-  {name:'Cognac Classic', color:'Cognac', hex:'#a3673a', leather:'Full-grain', price:89},
-  {name:'Onyx Standard', color:'Black', hex:'#1c1b1a', leather:'Full-grain', price:89},
-  {name:'Chestnut Weekend', color:'Chestnut', hex:'#6f4028', leather:'Suede', price:79},
-  {name:'Deep Sea Nubuck', color:'Navy', hex:'#26344a', leather:'Nubuck', price:95},
-  {name:'Olive Grove', color:'Olive', hex:'#5b6248', leather:'Vegetable-tanned', price:85},
-  {name:'Onyx Cordovan', color:'Black', hex:'#1c1b1a', leather:'Shell Cordovan', price:145},
-  {name:'Cognac Suede', color:'Cognac', hex:'#a3673a', leather:'Suede', price:79},
-  {name:'Chestnut Heritage', color:'Chestnut', hex:'#6f4028', leather:'Full-grain', price:92},
-  {name:'Navy Standard', color:'Navy', hex:'#26344a', leather:'Full-grain', price:89},
-  {name:'Olive Suede', color:'Olive', hex:'#5b6248', leather:'Suede', price:79},
-  {name:'Cognac Nubuck', color:'Cognac', hex:'#a3673a', leather:'Nubuck', price:95},
-  {name:'Onyx Vegetable-tanned', color:'Black', hex:'#1c1b1a', leather:'Vegetable-tanned', price:88},
+  {name:'Cognac Classic', color:'Cognac', hex:'#a3673a', leather:'Cow', price:89},
+  {name:'Onyx Standard', color:'Black', hex:'#1c1b1a', leather:'Cow', price:89},
+  {name:'Chestnut Ostrich', color:'Chestnut', hex:'#6f4028', leather:'Ostrich', price:129},
+  {name:'Deep Sea Shark', color:'Navy', hex:'#26344a', leather:'Shark', price:139},
+  {name:'Olive Lizard', color:'Olive', hex:'#5b6248', leather:'Lizard', price:149},
+  {name:'Onyx Crocodile', color:'Black', hex:'#1c1b1a', leather:'Crocodile', price:210},
+  {name:'Cognac Ostrich', color:'Cognac', hex:'#a3673a', leather:'Ostrich', price:129},
+  {name:'Chestnut Crocodile', color:'Chestnut', hex:'#6f4028', leather:'Crocodile', price:210},
+  {name:'Navy Classic', color:'Navy', hex:'#26344a', leather:'Cow', price:89},
+  {name:'Olive Snake', color:'Olive', hex:'#5b6248', leather:'Snake', price:135},
+  {name:'Cognac Stingray', color:'Cognac', hex:'#a3673a', leather:'Stingray', price:165},
+  {name:'Onyx Snake', color:'Black', hex:'#1c1b1a', leather:'Snake', price:135},
 ];
 
 const colors = [...new Set(straps.map(s=>s.color))];
-const leathers = [...new Set(straps.map(s=>s.leather))];
+const leathers = ['Ostrich','Lizard','Crocodile','Snake','Shark','Stingray','Cow'];
 
 const active = {color:new Set(), leather:new Set()};
 
