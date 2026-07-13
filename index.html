@@ -134,36 +134,19 @@
   /* ---------- WATCHES ---------- */
   #watches{background:var(--paper-2);}
   .watch-grid{
-    display:grid; grid-template-columns:1fr 1fr; gap:1px;
+    display:grid; grid-template-columns:repeat(auto-fill, minmax(258px,1fr)); gap:1px;
     background:var(--line); border:1px solid var(--line);
   }
   .watch-card{
-    background:var(--paper-2); padding:64px 48px 52px;
-    display:flex; flex-direction:column; align-items:center; text-align:center; position:relative;
+    background:var(--paper-2); padding:42px 30px 36px;
+    display:flex; flex-direction:column; align-items:center; text-align:center;
+    transition:background 0.2s ease;
   }
-  .watch-status{
-    position:absolute; top:24px; left:24px;
-    font-family:'Space Mono',monospace; font-size:0.64rem; letter-spacing:0.14em; text-transform:uppercase;
-    color:var(--muted); display:flex; align-items:center; gap:8px;
-  }
-  .watch-status::before{content:""; width:6px; height:6px; border-radius:50%; background:var(--ok);}
-  .watch-status.waitlist::before{background:var(--muted);}
-  .watch-ref{
-    position:absolute; top:24px; right:24px;
-    font-family:'Space Mono',monospace; font-size:0.64rem; letter-spacing:0.1em; color:var(--muted);
-  }
-  .watch-face-svg{width:230px; margin:14px 0 36px;}
-  .watch-card h3{font-size:2rem;}
-  .watch-tagline{color:var(--blue); font-size:0.9rem; margin-top:10px; font-style:italic;}
-  .watch-specs{margin-top:32px; width:100%; max-width:320px; display:flex; flex-direction:column; gap:0;}
-  .spec-row{
-    display:flex; justify-content:space-between; font-size:0.8rem; color:var(--muted);
-    border-top:1px solid var(--line-soft); padding:11px 0;
-  }
-  .spec-row:last-child{border-bottom:1px solid var(--line-soft);}
-  .spec-row span:last-child{color:var(--ink); font-family:'Space Mono',monospace;}
-  .watch-price{margin-top:32px; font-family:'Space Mono',monospace; font-size:1.4rem;}
-  .watch-card .btn{margin-top:26px;}
+  .watch-card:hover{background:var(--paper);}
+  .watch-face-svg{width:150px; margin:6px 0 26px;}
+  .watch-card h3{font-size:1.5rem;}
+  .watch-desc{color:var(--muted); font-size:0.85rem; line-height:1.55; margin:12px 0 0; max-width:26ch;}
+  .watch-price{margin-top:20px; font-family:'Space Mono',monospace; font-size:1.1rem;}
 
   /* ---------- STRAPS ---------- */
   .straps-layout{display:grid; grid-template-columns:230px 1fr; gap:56px; align-items:start;}
@@ -239,7 +222,6 @@
     .hero p{margin-left:auto; margin-right:auto;}
     .hero-ctas{justify-content:center;}
     .hero-clock-wrap{order:-1; margin-bottom:10px;}
-    .watch-grid{grid-template-columns:1fr;}
     .straps-layout{grid-template-columns:1fr;}
     .filter-panel{position:relative; top:0;}
   }
@@ -313,16 +295,14 @@
   <div class="section-head">
     <div>
       <span class="eyebrow">The Collection</span>
-      <h2>Two watches. No compromises.</h2>
+      <h2>Made to be kept.</h2>
     </div>
-    <p>Each case is machined, tested, and finished by hand before a strap ever touches it.</p>
+    <p>Each case is machined, tested, and finished by hand. The collection is small today, and growing.</p>
   </div>
 
   <div class="watch-grid">
     <!-- Watch 1: Field -->
     <div class="watch-card">
-      <div class="watch-status">In stock</div>
-      <div class="watch-ref">Ref. 01.F</div>
       <svg class="watch-face-svg" viewBox="0 0 220 220">
         <circle cx="110" cy="110" r="101" fill="#e6e3da" stroke="#16150f" stroke-width="1.5"/>
         <circle cx="110" cy="110" r="90" fill="#faf9f6"/>
@@ -349,21 +329,12 @@
         <text x="110" y="86" text-anchor="middle" font-family="Inter, sans-serif" font-weight="500" font-size="8" fill="#16150f" letter-spacing="2">JAYDEN'S</text>
       </svg>
       <h3>The Field</h3>
-      <div class="watch-tagline">For days that don't stay behind a desk</div>
-      <div class="watch-specs">
-        <div class="spec-row"><span>Case</span><span>39mm brushed steel</span></div>
-        <div class="spec-row"><span>Movement</span><span>Automatic · 42h</span></div>
-        <div class="spec-row"><span>Water resistance</span><span>100m</span></div>
-        <div class="spec-row"><span>Lug width</span><span>20mm</span></div>
-      </div>
+      <p class="watch-desc">39mm brushed steel, automatic. For days that don't stay behind a desk.</p>
       <div class="watch-price">$680</div>
-      <a href="#straps" class="btn btn-ghost">Pair with a strap</a>
     </div>
 
     <!-- Watch 2: Noir -->
     <div class="watch-card">
-      <div class="watch-status waitlist">Waitlist</div>
-      <div class="watch-ref">Ref. 02.N</div>
       <svg class="watch-face-svg" viewBox="0 0 220 220">
         <circle cx="110" cy="110" r="101" fill="#1c1b16" stroke="#16150f" stroke-width="1.5"/>
         <circle cx="110" cy="110" r="90" fill="#111017"/>
@@ -390,15 +361,8 @@
         <text x="110" y="86" text-anchor="middle" font-family="Inter, sans-serif" font-weight="500" font-size="8" fill="#3f6da3" letter-spacing="2">JAYDEN'S</text>
       </svg>
       <h3>The Noir</h3>
-      <div class="watch-tagline">For rooms with dimmer switches</div>
-      <div class="watch-specs">
-        <div class="spec-row"><span>Case</span><span>40mm black PVD steel</span></div>
-        <div class="spec-row"><span>Movement</span><span>Automatic · 48h</span></div>
-        <div class="spec-row"><span>Water resistance</span><span>50m</span></div>
-        <div class="spec-row"><span>Lug width</span><span>20mm</span></div>
-      </div>
+      <p class="watch-desc">40mm black PVD steel, automatic. For rooms with dimmer switches.</p>
       <div class="watch-price">$740</div>
-      <a href="#straps" class="btn btn-ghost">Pair with a strap</a>
     </div>
   </div>
 </section>
