@@ -293,6 +293,41 @@
   .cart-contact .email{font-family:'Space Mono',monospace; font-size:0.78rem; color:var(--ink); margin-top:16px;}
   .cart-empty{color:var(--muted); padding:24px 0 10px;}
 
+  /* ---------- ADMIN / LISTINGS ---------- */
+  .listing-card{position:relative;}
+  .listing-delete{
+    position:absolute; top:14px; right:14px; z-index:2;
+    width:28px; height:28px; border:1px solid var(--line); background:var(--paper);
+    color:var(--muted); cursor:pointer; font-size:1rem; line-height:1;
+    display:flex; align-items:center; justify-content:center; transition:all 0.15s ease;
+  }
+  .listing-delete:hover{border-color:#a33; color:#a33;}
+  .listing-desc{color:var(--muted); font-size:0.85rem; line-height:1.6; margin:12px 0 0;}
+  #addListingWrap{margin-bottom:40px;}
+  .listing-subsection{margin-top:56px;}
+  .listing-subsection:first-of-type{margin-top:0;}
+  .listing-subhead{display:flex; justify-content:space-between; align-items:baseline; margin-bottom:20px;}
+  .listing-subhead h3{font-size:1.3rem;}
+
+  .field-label{
+    font-family:'Space Mono',monospace; font-size:0.68rem; letter-spacing:0.16em; text-transform:uppercase;
+    color:var(--muted); margin-bottom:10px; display:block;
+  }
+  .field-input{
+    width:100%; padding:12px 14px; border:1px solid var(--line); background:none;
+    font-family:'Inter',sans-serif; font-size:0.95rem; color:var(--ink);
+  }
+  textarea.field-input{resize:vertical;}
+  .field-group{margin-bottom:24px;}
+  .form-error{color:#a33; font-size:0.82rem; margin-bottom:14px; min-height:1.2em;}
+
+  /* ---------- SPLASH / AUTH ---------- */
+  .splash-inner{max-width:420px; text-align:center; padding-top:14vh;}
+  .splash-inner .wordmark{margin-bottom:40px; text-align:center; padding-left:0.36em;}
+  #splashChoice p{color:var(--muted); font-size:0.92rem; line-height:1.7; margin:18px 0 34px;}
+  #splashChoice .btn, .admin-form .btn{width:100%; margin-bottom:12px;}
+  .admin-form{text-align:left;}
+
   footer{
     padding:56px 5vw; border-top:1px solid var(--line);
     display:flex; justify-content:space-between; align-items:flex-end; gap:24px; flex-wrap:wrap;
@@ -328,6 +363,7 @@
   <div class="wordmark">Jayden's<small>Watches</small></div>
   <div class="nav-right">
     <a href="#straps">Configure</a>
+    <a href="#" id="authLink">Admin</a>
     <a href="#" id="cartLink" aria-label="Cart">Cart (0)</a>
   </div>
 </nav>
@@ -487,10 +523,64 @@
   </div>
 </section>
 
+<section id="listings">
+  <div class="section-head">
+    <div>
+      <span class="eyebrow">More From The Shop</span>
+      <h2>Fresh listings.</h2>
+    </div>
+    <p>Added straight from the workshop, as they're ready.</p>
+  </div>
+
+  <div id="addListingWrap" style="display:none;">
+    <button class="btn btn-solid" id="openAddListing">+ Add listing</button>
+  </div>
+
+  <div class="listing-subsection">
+    <div class="listing-subhead">
+      <h3>Watches</h3>
+      <span id="listingCountWatches" class="mono"></span>
+    </div>
+    <div class="strap-grid" id="listingGridWatches"></div>
+  </div>
+
+  <div class="listing-subsection">
+    <div class="listing-subhead">
+      <h3>Straps</h3>
+      <span id="listingCountStraps" class="mono"></span>
+    </div>
+    <div class="strap-grid" id="listingGridStraps"></div>
+  </div>
+</section>
+
 <div class="overlay" id="overlay" aria-hidden="true" role="dialog" aria-modal="true">
   <div class="overlay-inner">
     <button class="overlay-close" id="overlayClose" aria-label="Close">&times;</button>
     <div id="overlayBody"></div>
+  </div>
+</div>
+
+<div class="overlay splash-overlay" id="splash" aria-hidden="true" role="dialog" aria-modal="true">
+  <div class="overlay-inner splash-inner">
+    <div class="wordmark">Jayden's<small>Watches</small></div>
+    <div id="splashChoice">
+      <p>Welcome. Browse as a guest, or sign in if you manage this shop.</p>
+      <button class="btn btn-solid" id="continueGuest">Continue as guest</button>
+      <button class="btn btn-ghost" id="showAdminForm">Admin login</button>
+    </div>
+    <form class="admin-form" id="adminForm" style="display:none;">
+      <div class="field-group">
+        <label class="field-label" for="adminUser">Username</label>
+        <input class="field-input" type="text" id="adminUser" autocomplete="username">
+      </div>
+      <div class="field-group">
+        <label class="field-label" for="adminPass">Password</label>
+        <input class="field-input" type="password" id="adminPass" autocomplete="current-password">
+      </div>
+      <div class="form-error" id="adminError"></div>
+      <button type="submit" class="btn btn-solid">Log in</button>
+      <button type="button" class="btn btn-ghost" id="backToChoice">Back</button>
+    </form>
   </div>
 </div>
 
@@ -505,7 +595,30 @@
   <div class="mono">© 2026 · New Zealand</div>
 </footer>
 
-<script>
+<script type="module">
+// ---------- FIREBASE ----------
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged }
+  from "https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js";
+import { getFirestore, collection, addDoc, deleteDoc, doc, onSnapshot, query, orderBy, serverTimestamp }
+  from "https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyALG1fyJWOfep7i-nGwyzBaQYeF9tDXPqU",
+  authDomain: "jaydens-watches.firebaseapp.com",
+  projectId: "jaydens-watches",
+  storageBucket: "jaydens-watches.firebasestorage.app",
+  messagingSenderId: "140092713351",
+  appId: "1:140092713351:web:646ae1218fce60f801cb22",
+};
+const ADMIN_EMAIL = 'admin@jaydenswatches.local';
+
+const firebaseApp = initializeApp(firebaseConfig);
+const auth = getAuth(firebaseApp);
+const db = getFirestore(firebaseApp);
+const listingsCol = collection(db, 'listings');
+let isAdmin = false;
+
 // ---------- HERO CLOCK ----------
 const ticks = document.getElementById('ticks');
 const numerals = document.getElementById('numerals');
@@ -853,6 +966,219 @@ document.querySelectorAll('.watch-add').forEach(btn=>{
 });
 document.getElementById('cartLink').addEventListener('click', e=>{ e.preventDefault(); openCart(); });
 updateCartCount();
+
+// ---------- ADMIN / LISTINGS ----------
+const splash = document.getElementById('splash');
+function openSplash(directForm){
+  document.getElementById('splashChoice').style.display = directForm ? 'none' : 'block';
+  document.getElementById('adminForm').style.display = directForm ? 'block' : 'none';
+  document.getElementById('adminError').textContent = '';
+  splash.classList.add('open');
+  splash.setAttribute('aria-hidden','false');
+  document.body.style.overflow = 'hidden';
+}
+function closeSplash(){
+  splash.classList.remove('open');
+  splash.setAttribute('aria-hidden','true');
+  document.body.style.overflow = '';
+}
+function dismissAsGuest(){
+  localStorage.setItem('jw_guest_ack','1');
+  closeSplash();
+}
+splash.addEventListener('click', e=>{ if(e.target===splash) dismissAsGuest(); });
+document.addEventListener('keydown', e=>{ if(e.key==='Escape' && splash.classList.contains('open')) dismissAsGuest(); });
+
+document.getElementById('continueGuest').addEventListener('click', dismissAsGuest);
+document.getElementById('showAdminForm').addEventListener('click', ()=>{
+  document.getElementById('splashChoice').style.display = 'none';
+  document.getElementById('adminForm').style.display = 'block';
+});
+document.getElementById('backToChoice').addEventListener('click', ()=>{
+  document.getElementById('adminForm').style.display = 'none';
+  document.getElementById('splashChoice').style.display = 'block';
+});
+document.getElementById('adminForm').addEventListener('submit', async e=>{
+  e.preventDefault();
+  const user = document.getElementById('adminUser').value.trim();
+  const pass = document.getElementById('adminPass').value;
+  const errorEl = document.getElementById('adminError');
+  errorEl.textContent = '';
+  if(user.toUpperCase() !== 'ADMIN'){
+    errorEl.textContent = 'Invalid username or password.';
+    return;
+  }
+  try{
+    await signInWithEmailAndPassword(auth, ADMIN_EMAIL, pass);
+    localStorage.removeItem('jw_guest_ack');
+    closeSplash();
+  }catch(err){
+    errorEl.textContent = 'Invalid username or password.';
+  }
+});
+
+document.getElementById('authLink').addEventListener('click', e=>{
+  e.preventDefault();
+  if(isAdmin) signOut(auth);
+  else openSplash(true);
+});
+
+let authResolved = false;
+onAuthStateChanged(auth, user=>{
+  isAdmin = !!user;
+  updateAdminUI();
+  if(!authResolved){
+    authResolved = true;
+    if(!isAdmin && !localStorage.getItem('jw_guest_ack')) openSplash(false);
+  }
+});
+
+function updateAdminUI(){
+  document.getElementById('authLink').textContent = isAdmin ? 'Log out' : 'Admin';
+  document.getElementById('addListingWrap').style.display = isAdmin ? 'block' : 'none';
+  renderListings();
+}
+
+let listings = [];
+onSnapshot(query(listingsCol, orderBy('createdAt','desc')), snap=>{
+  listings = snap.docs.map(d=>({id:d.id, ...d.data()}));
+  renderListings();
+});
+
+function renderListingGroup(category, gridId, countId){
+  const grid = document.getElementById(gridId);
+  const countEl = document.getElementById(countId);
+  if(!grid || !countEl) return;
+  const items = listings.filter(l=>l.category===category);
+  countEl.textContent = `${String(items.length).padStart(2,'0')} listing${items.length===1 ? '' : 's'}`;
+  grid.innerHTML = '';
+  if(items.length===0){
+    grid.innerHTML = `<div class="no-results"><h3>No listings yet</h3><p>${isAdmin ? 'Add your first listing above.' : 'Check back soon.'}</p></div>`;
+    return;
+  }
+  items.forEach(item=>{
+    const card = document.createElement('div');
+    card.className = 'strap-card listing-card';
+    card.innerHTML = `
+      ${isAdmin ? `<button class="listing-delete" data-del="${item.id}" aria-label="Delete listing">&times;</button>` : ''}
+      <img class="strap-photo" src="${item.image}" alt="${item.title}">
+      <div class="strap-name">${item.title}</div>
+      <p class="listing-desc">${item.description}</p>
+      <div class="strap-bottom">
+        <span class="strap-price">$${item.price}</span>
+        <button class="add-btn" data-listing="${item.id}">Add</button>
+      </div>`;
+    grid.appendChild(card);
+  });
+}
+
+function renderListings(){
+  renderListingGroup('watch', 'listingGridWatches', 'listingCountWatches');
+  renderListingGroup('strap', 'listingGridStraps', 'listingCountStraps');
+}
+
+function handleListingGridClick(e){
+  const del = e.target.closest('[data-del]');
+  if(del){
+    if(confirm('Delete this listing?')) deleteDoc(doc(db,'listings',del.dataset.del));
+    return;
+  }
+  const addBtn = e.target.closest('[data-listing]');
+  if(addBtn){
+    const item = listings.find(l=>l.id===addBtn.dataset.listing);
+    if(item){
+      cart.push({type:'Listing', name:item.title, price:item.price, options:[item.description]});
+      saveCart(); openCart();
+    }
+  }
+}
+document.getElementById('listingGridWatches').addEventListener('click', handleListingGridClick);
+document.getElementById('listingGridStraps').addEventListener('click', handleListingGridClick);
+
+function compressImage(file, maxWidth=800, quality=0.72){
+  return new Promise((resolve, reject)=>{
+    const reader = new FileReader();
+    reader.onerror = reject;
+    reader.onload = ()=>{
+      const img = new Image();
+      img.onerror = reject;
+      img.onload = ()=>{
+        const scale = Math.min(1, maxWidth / img.width);
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width * scale;
+        canvas.height = img.height * scale;
+        canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+document.getElementById('openAddListing').addEventListener('click', ()=>{
+  openOverlay(`
+    <div class="product" style="grid-template-columns:1fr; max-width:520px; margin:0 auto;">
+      <div>
+        <span class="eyebrow">Admin</span>
+        <h2>New listing</h2>
+        <form id="listingForm">
+          <div class="field-group">
+            <label class="field-label" for="listingCategory">Category</label>
+            <select class="field-input" id="listingCategory" required>
+              <option value="watch">Watch</option>
+              <option value="strap">Strap</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <label class="field-label" for="listingImage">Photo</label>
+            <input class="field-input" type="file" id="listingImage" accept="image/*" required>
+          </div>
+          <div class="field-group">
+            <label class="field-label" for="listingTitle">Title</label>
+            <input class="field-input" type="text" id="listingTitle" required>
+          </div>
+          <div class="field-group">
+            <label class="field-label" for="listingDesc">Description</label>
+            <textarea class="field-input" id="listingDesc" rows="4" required></textarea>
+          </div>
+          <div class="field-group">
+            <label class="field-label" for="listingPrice">Price (USD)</label>
+            <input class="field-input" type="number" id="listingPrice" min="0" step="0.01" required>
+          </div>
+          <div class="form-error" id="listingError"></div>
+          <button type="submit" class="btn-add" id="listingSubmitBtn">Publish listing</button>
+        </form>
+      </div>
+    </div>`);
+  document.getElementById('listingForm').addEventListener('submit', handleAddListing);
+});
+
+async function handleAddListing(e){
+  e.preventDefault();
+  const errorEl = document.getElementById('listingError');
+  const btn = document.getElementById('listingSubmitBtn');
+  errorEl.textContent = '';
+  const category = document.getElementById('listingCategory').value;
+  const file = document.getElementById('listingImage').files[0];
+  const title = document.getElementById('listingTitle').value.trim();
+  const description = document.getElementById('listingDesc').value.trim();
+  const price = parseFloat(document.getElementById('listingPrice').value);
+  if(!file || !title || !description || isNaN(price)){
+    errorEl.textContent = 'Please fill in every field.';
+    return;
+  }
+  btn.disabled = true; btn.textContent = 'Publishing…';
+  try{
+    const image = await compressImage(file);
+    if(image.length > 900000) throw new Error('Image is too large even after compression — try a smaller photo.');
+    await addDoc(listingsCol, { category, title, description, price, image, createdAt: serverTimestamp() });
+    closeOverlay();
+  }catch(err){
+    errorEl.textContent = err.message || 'Something went wrong publishing this listing.';
+    btn.disabled = false; btn.textContent = 'Publish listing';
+  }
+}
 </script>
 
 </body>
