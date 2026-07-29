@@ -136,19 +136,13 @@
   /* ---------- WATCHES ---------- */
   #watches{background:var(--paper-2);}
   .watch-grid{
-    display:grid; grid-template-columns:repeat(auto-fill, minmax(258px,1fr)); gap:1px;
+    display:grid; grid-template-columns:repeat(auto-fill, minmax(440px,1fr)); gap:1px;
     background:var(--line); border:1px solid var(--line);
   }
-  .watch-card{
-    background:var(--paper-2); padding:42px 30px 36px;
-    display:flex; flex-direction:column; align-items:center; text-align:center;
-    transition:background 0.2s ease;
-  }
-  .watch-card:hover{background:var(--paper);}
-  .watch-face-svg{width:150px; margin:6px 0 26px;}
-  .watch-card h3{font-size:1.5rem;}
-  .watch-desc{color:var(--muted); font-size:0.85rem; line-height:1.55; margin:12px 0 0; max-width:26ch;}
-  .watch-price{margin-top:20px; font-family:'Space Mono',monospace; font-size:1.1rem;}
+  .watch-grid .strap-card{padding:56px 48px 44px; cursor:pointer;}
+  .watch-grid .strap-name{font-size:1.7rem;}
+  .watch-grid .listing-desc{font-size:0.92rem;}
+  .watch-grid .strap-price{font-size:1.5rem;}
 
   /* ---------- STRAPS ---------- */
   .straps-layout{display:grid; grid-template-columns:230px 1fr; gap:56px; align-items:start;}
@@ -210,8 +204,6 @@
   .no-results{grid-column:1/-1; text-align:center; padding:70px 20px; color:var(--muted); background:var(--paper);}
   .no-results h3{color:var(--ink); margin-bottom:10px; font-size:1.4rem;}
 
-  .watch-add{margin-top:22px;}
-
   /* ---------- OVERLAY / PRODUCT ---------- */
   .overlay{
     position:fixed; inset:0; z-index:100;
@@ -236,9 +228,15 @@
     background:var(--paper-2); border:1px solid var(--line);
     display:flex; align-items:center; justify-content:center; padding:56px 40px; position:sticky; top:40px;
   }
-  .product-visual svg{width:100%; max-width:340px;}
-  .product-visual .watch-face-svg{width:100%; max-width:300px; margin:0;}
   .product-visual img{width:100%; max-width:380px; object-fit:contain;}
+  .gallery{display:flex; flex-direction:column; align-items:center; gap:16px; width:100%;}
+  .gallery-thumbs{display:flex; gap:8px; flex-wrap:wrap; justify-content:center;}
+  .gallery-thumb{
+    width:64px; height:64px; object-fit:cover; border:1px solid var(--line);
+    cursor:pointer; opacity:0.55; transition:opacity 0.15s ease;
+  }
+  .gallery-thumb:hover{opacity:1;}
+  .gallery-thumb.active{opacity:1; border-color:var(--ink);}
   .product .eyebrow{display:block; margin-bottom:16px;}
   .product h2{font-size:clamp(1.9rem,3.2vw,2.7rem); margin-bottom:10px;}
   .product-sub{color:var(--blue); font-style:italic; margin-bottom:34px; line-height:1.5;}
@@ -325,6 +323,16 @@
   .crop-viewport canvas{display:block; width:100%; height:100%;}
   .crop-zoom{width:100%; margin-top:12px;}
   .crop-hint{color:var(--muted); font-size:0.78rem; line-height:1.5; margin-top:10px;}
+
+  .extra-thumbs{display:flex; gap:10px; flex-wrap:wrap; margin-top:12px;}
+  .extra-thumb{position:relative; width:72px; height:72px;}
+  .extra-thumb img{width:100%; height:100%; object-fit:cover; border:1px solid var(--line);}
+  .extra-thumb-remove{
+    position:absolute; top:-8px; right:-8px; width:22px; height:22px; border-radius:50%;
+    border:1px solid var(--line); background:var(--paper); color:var(--muted); cursor:pointer;
+    font-size:0.85rem; line-height:1; display:flex; align-items:center; justify-content:center; padding:0;
+  }
+  .extra-thumb-remove:hover{border-color:#a33; color:#a33;}
 
   /* ---------- SPLASH / AUTH ---------- */
   .splash-inner{max-width:420px; text-align:center; padding-top:14vh;}
@@ -881,6 +889,7 @@ function renderWatchListings(){
   items.forEach(item=>{
     const card = document.createElement('div');
     card.className = 'strap-card listing-card';
+    card.dataset.id = item.id;
     card.innerHTML = listingCardHtml(item);
     grid.appendChild(card);
   });
@@ -899,10 +908,54 @@ function handleListingGridClick(e){
       cart.push({type:'Listing', name:item.title, price:item.price, options:[item.description]});
       saveCart(); openCart();
     }
+    return;
+  }
+  const card = e.target.closest('.listing-card');
+  if(card && card.closest('.watch-grid')){
+    const item = listings.find(l=>l.id===card.dataset.id);
+    if(item) openListingDetail(item);
   }
 }
 document.querySelector('.watch-grid').addEventListener('click', handleListingGridClick);
 document.getElementById('strapGrid').addEventListener('click', handleListingGridClick);
+
+let galleryIndex = 0;
+function openListingDetail(item){
+  galleryIndex = 0;
+  const gallery = [item.image, ...(item.images || [])];
+  renderListingDetail(item, gallery);
+}
+function renderListingDetail(item, gallery){
+  openOverlay(`
+    <div class="product">
+      <div class="product-visual">
+        <div class="gallery">
+          <img id="galleryMain" src="${gallery[galleryIndex]}" alt="${item.title}">
+          ${gallery.length > 1 ? `<div class="gallery-thumbs">${gallery.map((src,i)=>
+            `<img class="gallery-thumb${i===galleryIndex ? ' active' : ''}" data-idx="${i}" src="${src}" alt="${item.title} photo ${i+1}">`
+          ).join('')}</div>` : ''}
+        </div>
+      </div>
+      <div>
+        <span class="eyebrow">Watch</span>
+        <h2>${item.title}</h2>
+        <div class="product-sub">${item.description}</div>
+        <div class="product-price">$${item.price}</div>
+        <p class="product-note">Assembled to order. No online checkout &mdash; add to your cart and send us an enquiry to confirm details, final price, and delivery.</p>
+        <button class="btn-add" data-addlisting>Add to cart</button>
+      </div>
+    </div>`);
+  overlayBody.querySelectorAll('.gallery-thumb').forEach(t=>{
+    t.addEventListener('click', ()=>{
+      galleryIndex = parseInt(t.dataset.idx, 10);
+      renderListingDetail(item, gallery);
+    });
+  });
+  overlayBody.querySelector('[data-addlisting]').addEventListener('click', ()=>{
+    cart.push({type:'Listing', name:item.title, price:item.price, options:[item.description]});
+    saveCart(); openCart();
+  });
+}
 
 // Output resolution matches the listing card's photo frame (4:3), so the
 // crop canvas doubles as the final saved image — no separate resize step.
@@ -981,10 +1034,66 @@ function wireCropEditor(){
   ['pointerup','pointercancel'].forEach(evt=>viewport.addEventListener(evt, ()=> dragging = false));
 }
 
+// Extra gallery photos (watch listings only) — resized, not cropped, since
+// they're just supplementary reference shots rather than the card thumbnail.
+const MAX_EXTRA_IMAGES = 4;
+let extraImages = [];
+
+function resizeImageFile(file, maxWidth=640, quality=0.6){
+  return new Promise((resolve, reject)=>{
+    const reader = new FileReader();
+    reader.onerror = reject;
+    reader.onload = ()=>{
+      const img = new Image();
+      img.onerror = reject;
+      img.onload = ()=>{
+        const scale = Math.min(1, maxWidth / img.width);
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width * scale;
+        canvas.height = img.height * scale;
+        canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function renderExtraThumbs(){
+  const wrap = document.getElementById('extraThumbs');
+  if(!wrap) return;
+  wrap.innerHTML = extraImages.map((src,i)=>`
+    <div class="extra-thumb">
+      <img src="${src}" alt="Extra photo ${i+1}">
+      <button type="button" class="extra-thumb-remove" data-idx="${i}" aria-label="Remove photo">&times;</button>
+    </div>`).join('');
+  wrap.querySelectorAll('.extra-thumb-remove').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      extraImages.splice(parseInt(btn.dataset.idx, 10), 1);
+      renderExtraThumbs();
+    });
+  });
+}
+
+function wireExtraImages(){
+  const input = document.getElementById('listingExtraImages');
+  if(!input) return;
+  input.addEventListener('change', async e=>{
+    const files = Array.from(e.target.files).slice(0, MAX_EXTRA_IMAGES - extraImages.length);
+    for(const file of files){
+      extraImages.push(await resizeImageFile(file));
+    }
+    input.value = '';
+    renderExtraThumbs();
+  });
+}
+
 let pendingListingCategory = 'watch';
 function openAddListingForm(category){
   pendingListingCategory = category;
   cropImg = null;
+  extraImages = [];
   openOverlay(`
     <div class="product" style="grid-template-columns:1fr; max-width:520px; margin:0 auto;">
       <div>
@@ -992,15 +1101,22 @@ function openAddListingForm(category){
         <h2>New ${category === 'watch' ? 'watch' : 'strap'} listing</h2>
         <form id="listingForm">
           <div class="field-group">
-            <label class="field-label" for="listingImage">Photo</label>
+            <label class="field-label" for="listingImage">Cover photo</label>
             <input class="field-input" type="file" id="listingImage" accept="image/*" required>
           </div>
           <div class="field-group" id="cropGroup" style="display:none;">
-            <label class="field-label">Crop photo</label>
+            <label class="field-label">Crop cover photo</label>
             <div class="crop-viewport" id="cropViewport"><canvas id="cropCanvas"></canvas></div>
             <input type="range" class="crop-zoom" id="cropZoom" min="1" max="3" step="0.01" value="1">
             <p class="crop-hint">Drag to reposition, slide to zoom — this is exactly how the photo will appear in the listing.</p>
           </div>
+          ${category === 'watch' ? `
+          <div class="field-group">
+            <label class="field-label" for="listingExtraImages">Extra photos (optional, up to ${MAX_EXTRA_IMAGES})</label>
+            <input class="field-input" type="file" id="listingExtraImages" accept="image/*" multiple>
+            <div class="extra-thumbs" id="extraThumbs"></div>
+            <p class="crop-hint">Shown when a customer clicks into this listing — not cropped, so any shape works.</p>
+          </div>` : ''}
           <div class="field-group">
             <label class="field-label" for="listingTitle">Title</label>
             <input class="field-input" type="text" id="listingTitle" required>
@@ -1020,6 +1136,7 @@ function openAddListingForm(category){
     </div>`);
   document.getElementById('listingForm').addEventListener('submit', handleAddListing);
   wireCropEditor();
+  wireExtraImages();
 }
 document.getElementById('openAddListingWatch').addEventListener('click', ()=>openAddListingForm('watch'));
 document.getElementById('openAddListingStrap').addEventListener('click', ()=>openAddListingForm('strap'));
@@ -1040,8 +1157,10 @@ async function handleAddListing(e){
   btn.disabled = true; btn.textContent = 'Publishing…';
   try{
     const image = cropCanvas.toDataURL('image/jpeg', 0.72);
-    if(image.length > 900000) throw new Error('Image is too large — try a different photo.');
-    await addDoc(listingsCol, { category, title, description, price, image, createdAt: serverTimestamp() });
+    const images = category === 'watch' ? extraImages : [];
+    const totalSize = image.length + images.reduce((sum,img)=>sum+img.length, 0);
+    if(totalSize > 950000) throw new Error('Photos are too large together — remove one or use smaller photos.');
+    await addDoc(listingsCol, { category, title, description, price, image, images, createdAt: serverTimestamp() });
     closeOverlay();
   }catch(err){
     errorEl.textContent = err.message || 'Something went wrong publishing this listing.';
