@@ -419,73 +419,7 @@
     <button class="btn btn-solid" id="openAddListingWatch">+ Add watch listing</button>
   </div>
 
-  <div class="watch-grid">
-    <!-- Watch 1: Field -->
-    <div class="watch-card">
-      <svg class="watch-face-svg" viewBox="0 0 220 220">
-        <circle cx="110" cy="110" r="101" fill="#e6e3da" stroke="#16150f" stroke-width="1.5"/>
-        <circle cx="110" cy="110" r="90" fill="#faf9f6"/>
-        <g stroke="#16150f" stroke-width="2">
-          <line x1="110" y1="28" x2="110" y2="42"/>
-          <line x1="110" y1="178" x2="110" y2="192"/>
-          <line x1="28" y1="110" x2="42" y2="110"/>
-          <line x1="178" y1="110" x2="192" y2="110"/>
-        </g>
-        <g stroke="rgba(22,21,15,0.35)" stroke-width="1">
-          <line x1="110" y1="30" x2="110" y2="38" transform="rotate(30 110 110)"/>
-          <line x1="110" y1="30" x2="110" y2="38" transform="rotate(60 110 110)"/>
-          <line x1="110" y1="30" x2="110" y2="38" transform="rotate(120 110 110)"/>
-          <line x1="110" y1="30" x2="110" y2="38" transform="rotate(150 110 110)"/>
-          <line x1="110" y1="30" x2="110" y2="38" transform="rotate(210 110 110)"/>
-          <line x1="110" y1="30" x2="110" y2="38" transform="rotate(240 110 110)"/>
-          <line x1="110" y1="30" x2="110" y2="38" transform="rotate(300 110 110)"/>
-          <line x1="110" y1="30" x2="110" y2="38" transform="rotate(330 110 110)"/>
-        </g>
-        <line x1="110" y1="110" x2="110" y2="64" stroke="#16150f" stroke-width="4" stroke-linecap="round"/>
-        <line x1="110" y1="110" x2="148" y2="110" stroke="#16150f" stroke-width="3" stroke-linecap="round"/>
-        <line x1="110" y1="118" x2="110" y2="56" stroke="#274a72" stroke-width="1.4" stroke-linecap="round"/>
-        <circle cx="110" cy="110" r="4" fill="#274a72"/>
-        <text x="110" y="86" text-anchor="middle" font-family="Inter, sans-serif" font-weight="500" font-size="8" fill="#16150f" letter-spacing="2">JAYDEN'S</text>
-      </svg>
-      <h3>The Field</h3>
-      <p class="watch-desc">39mm brushed steel, automatic. For days that don't stay behind a desk.</p>
-      <div class="watch-price">$680</div>
-      <button class="add-btn watch-add">Add</button>
-    </div>
-
-    <!-- Watch 2: Noir -->
-    <div class="watch-card">
-      <svg class="watch-face-svg" viewBox="0 0 220 220">
-        <circle cx="110" cy="110" r="101" fill="#1c1b16" stroke="#16150f" stroke-width="1.5"/>
-        <circle cx="110" cy="110" r="90" fill="#111017"/>
-        <g stroke="#3f6da3" stroke-width="2">
-          <line x1="110" y1="28" x2="110" y2="42"/>
-          <line x1="110" y1="178" x2="110" y2="192"/>
-          <line x1="28" y1="110" x2="42" y2="110"/>
-          <line x1="178" y1="110" x2="192" y2="110"/>
-        </g>
-        <g stroke="rgba(236,233,226,0.3)" stroke-width="1">
-          <line x1="110" y1="30" x2="110" y2="38" transform="rotate(30 110 110)"/>
-          <line x1="110" y1="30" x2="110" y2="38" transform="rotate(60 110 110)"/>
-          <line x1="110" y1="30" x2="110" y2="38" transform="rotate(120 110 110)"/>
-          <line x1="110" y1="30" x2="110" y2="38" transform="rotate(150 110 110)"/>
-          <line x1="110" y1="30" x2="110" y2="38" transform="rotate(210 110 110)"/>
-          <line x1="110" y1="30" x2="110" y2="38" transform="rotate(240 110 110)"/>
-          <line x1="110" y1="30" x2="110" y2="38" transform="rotate(300 110 110)"/>
-          <line x1="110" y1="30" x2="110" y2="38" transform="rotate(330 110 110)"/>
-        </g>
-        <line x1="110" y1="110" x2="110" y2="64" stroke="#ece9e2" stroke-width="4" stroke-linecap="round"/>
-        <line x1="110" y1="110" x2="148" y2="110" stroke="#ece9e2" stroke-width="3" stroke-linecap="round"/>
-        <line x1="110" y1="118" x2="110" y2="56" stroke="#3f6da3" stroke-width="1.4" stroke-linecap="round"/>
-        <circle cx="110" cy="110" r="4" fill="#3f6da3"/>
-        <text x="110" y="86" text-anchor="middle" font-family="Inter, sans-serif" font-weight="500" font-size="8" fill="#3f6da3" letter-spacing="2">JAYDEN'S</text>
-      </svg>
-      <h3>The Noir</h3>
-      <p class="watch-desc">40mm black PVD steel, automatic. For rooms with dimmer switches.</p>
-      <div class="watch-price">$740</div>
-      <button class="add-btn watch-add">Add</button>
-    </div>
-  </div>
+  <div class="watch-grid"></div>
 </section>
 
 <section id="straps">
@@ -768,30 +702,6 @@ function openStrap(idx){
   };
 }
 
-function openWatch(card){
-  const name = card.querySelector('h3').textContent;
-  const desc = card.querySelector('.watch-desc').textContent;
-  const priceText = card.querySelector('.watch-price').textContent;
-  const priceNum = parseInt(priceText.replace(/[^0-9]/g,''), 10);
-  const svg = card.querySelector('.watch-face-svg').outerHTML;
-  openOverlay(`
-    <div class="product">
-      <div class="product-visual">${svg}</div>
-      <div>
-        <span class="eyebrow">Watch</span>
-        <h2>${name}</h2>
-        <div class="product-sub">${desc}</div>
-        <div class="product-price">${priceText}</div>
-        <p class="product-note">Assembled to order. No online checkout &mdash; add to your cart and send us an enquiry to confirm details, final price, and delivery.</p>
-        <button class="btn-add" data-addwatch>Add to cart</button>
-      </div>
-    </div>`);
-  overlayBody.querySelector('[data-addwatch]').addEventListener('click', ()=>{
-    cart.push({type:'Watch', name, price:priceNum, options:[desc]});
-    saveCart(); openCart();
-  });
-}
-
 function openCart(){
   let html = `<div class="cart"><h2>Your cart</h2>
     <p class="cart-lead">We keep things personal. There's no online checkout &mdash; build your cart, then send us an enquiry. We'll get back to you to confirm the options, agree a price, and arrange delivery to wherever you are.</p>`;
@@ -853,9 +763,6 @@ Notes:
 document.getElementById('strapGrid').addEventListener('click', e=>{
   const btn = e.target.closest('.add-btn');
   if(btn && btn.dataset.strap !== undefined) openStrap(parseInt(btn.dataset.strap,10));
-});
-document.querySelectorAll('.watch-add').forEach(btn=>{
-  btn.addEventListener('click', ()=> openWatch(btn.closest('.watch-card')));
 });
 document.getElementById('cartLink').addEventListener('click', e=>{ e.preventDefault(); openCart(); });
 updateCartCount();
@@ -955,8 +862,13 @@ function listingCardHtml(item){
 
 function renderWatchListings(){
   const grid = document.querySelector('.watch-grid');
-  grid.querySelectorAll('.listing-card').forEach(el=>el.remove());
-  listings.filter(l=>l.category==='watch').forEach(item=>{
+  const items = listings.filter(l=>l.category==='watch');
+  grid.innerHTML = '';
+  if(items.length===0){
+    grid.innerHTML = `<div class="no-results"><h3>No watches in stock</h3><p>Check back soon.</p></div>`;
+    return;
+  }
+  items.forEach(item=>{
     const card = document.createElement('div');
     card.className = 'strap-card listing-card';
     card.innerHTML = listingCardHtml(item);
