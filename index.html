@@ -317,6 +317,15 @@
   .field-group{margin-bottom:24px;}
   .form-error{color:#a33; font-size:0.82rem; margin-bottom:14px; min-height:1.2em;}
 
+  .crop-viewport{
+    position:relative; width:100%; aspect-ratio:4/3; overflow:hidden;
+    background:var(--paper-2); border:1px solid var(--line); cursor:grab; touch-action:none;
+  }
+  .crop-viewport:active{cursor:grabbing;}
+  .crop-viewport canvas{display:block; width:100%; height:100%;}
+  .crop-zoom{width:100%; margin-top:12px;}
+  .crop-hint{color:var(--muted); font-size:0.78rem; line-height:1.5; margin-top:10px;}
+
   /* ---------- SPLASH / AUTH ---------- */
   .splash-inner{max-width:420px; text-align:center; padding-top:14vh;}
   .splash-inner .wordmark{margin-bottom:40px; text-align:center; padding-left:0.36em;}
@@ -895,30 +904,87 @@ function handleListingGridClick(e){
 document.querySelector('.watch-grid').addEventListener('click', handleListingGridClick);
 document.getElementById('strapGrid').addEventListener('click', handleListingGridClick);
 
-function compressImage(file, maxWidth=800, quality=0.72){
-  return new Promise((resolve, reject)=>{
-    const reader = new FileReader();
-    reader.onerror = reject;
-    reader.onload = ()=>{
-      const img = new Image();
-      img.onerror = reject;
-      img.onload = ()=>{
-        const scale = Math.min(1, maxWidth / img.width);
-        const canvas = document.createElement('canvas');
-        canvas.width = img.width * scale;
-        canvas.height = img.height * scale;
-        canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
-        resolve(canvas.toDataURL('image/jpeg', quality));
-      };
-      img.src = reader.result;
+// Output resolution matches the listing card's photo frame (4:3), so the
+// crop canvas doubles as the final saved image — no separate resize step.
+const CROP_W = 800, CROP_H = 600;
+let cropImg = null, cropScale = 1, cropMinScale = 1, cropOffsetX = 0, cropOffsetY = 0;
+let cropCanvas = null, cropCtx = null;
+
+function clampCropOffsets(){
+  const w = cropImg.width * cropScale, h = cropImg.height * cropScale;
+  cropOffsetX = Math.min(0, Math.max(CROP_W - w, cropOffsetX));
+  cropOffsetY = Math.min(0, Math.max(CROP_H - h, cropOffsetY));
+}
+
+function drawCrop(){
+  cropCtx.clearRect(0, 0, CROP_W, CROP_H);
+  cropCtx.drawImage(cropImg, cropOffsetX, cropOffsetY, cropImg.width * cropScale, cropImg.height * cropScale);
+}
+
+function loadCropImage(file){
+  const reader = new FileReader();
+  reader.onload = ()=>{
+    const img = new Image();
+    img.onload = ()=>{
+      cropImg = img;
+      cropMinScale = Math.max(CROP_W / img.width, CROP_H / img.height);
+      cropScale = cropMinScale;
+      cropOffsetX = (CROP_W - img.width * cropScale) / 2;
+      cropOffsetY = (CROP_H - img.height * cropScale) / 2;
+      document.getElementById('cropZoom').value = 1;
+      document.getElementById('cropGroup').style.display = 'block';
+      drawCrop();
     };
-    reader.readAsDataURL(file);
+    img.src = reader.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function wireCropEditor(){
+  cropCanvas = document.getElementById('cropCanvas');
+  cropCanvas.width = CROP_W; cropCanvas.height = CROP_H;
+  cropCtx = cropCanvas.getContext('2d');
+  const viewport = document.getElementById('cropViewport');
+
+  document.getElementById('listingImage').addEventListener('change', e=>{
+    const file = e.target.files[0];
+    if(file) loadCropImage(file);
   });
+
+  document.getElementById('cropZoom').addEventListener('input', e=>{
+    if(!cropImg) return;
+    const centerX = CROP_W/2, centerY = CROP_H/2;
+    const imgX = (centerX - cropOffsetX) / cropScale, imgY = (centerY - cropOffsetY) / cropScale;
+    cropScale = cropMinScale * parseFloat(e.target.value);
+    cropOffsetX = centerX - imgX * cropScale;
+    cropOffsetY = centerY - imgY * cropScale;
+    clampCropOffsets();
+    drawCrop();
+  });
+
+  let dragging = false, startX = 0, startY = 0, startOffsetX = 0, startOffsetY = 0;
+  viewport.addEventListener('pointerdown', e=>{
+    if(!cropImg) return;
+    dragging = true;
+    startX = e.clientX; startY = e.clientY;
+    startOffsetX = cropOffsetX; startOffsetY = cropOffsetY;
+    viewport.setPointerCapture(e.pointerId);
+  });
+  viewport.addEventListener('pointermove', e=>{
+    if(!dragging) return;
+    const ratio = CROP_W / viewport.getBoundingClientRect().width;
+    cropOffsetX = startOffsetX + (e.clientX - startX) * ratio;
+    cropOffsetY = startOffsetY + (e.clientY - startY) * ratio;
+    clampCropOffsets();
+    drawCrop();
+  });
+  ['pointerup','pointercancel'].forEach(evt=>viewport.addEventListener(evt, ()=> dragging = false));
 }
 
 let pendingListingCategory = 'watch';
 function openAddListingForm(category){
   pendingListingCategory = category;
+  cropImg = null;
   openOverlay(`
     <div class="product" style="grid-template-columns:1fr; max-width:520px; margin:0 auto;">
       <div>
@@ -928,6 +994,12 @@ function openAddListingForm(category){
           <div class="field-group">
             <label class="field-label" for="listingImage">Photo</label>
             <input class="field-input" type="file" id="listingImage" accept="image/*" required>
+          </div>
+          <div class="field-group" id="cropGroup" style="display:none;">
+            <label class="field-label">Crop photo</label>
+            <div class="crop-viewport" id="cropViewport"><canvas id="cropCanvas"></canvas></div>
+            <input type="range" class="crop-zoom" id="cropZoom" min="1" max="3" step="0.01" value="1">
+            <p class="crop-hint">Drag to reposition, slide to zoom — this is exactly how the photo will appear in the listing.</p>
           </div>
           <div class="field-group">
             <label class="field-label" for="listingTitle">Title</label>
@@ -947,6 +1019,7 @@ function openAddListingForm(category){
       </div>
     </div>`);
   document.getElementById('listingForm').addEventListener('submit', handleAddListing);
+  wireCropEditor();
 }
 document.getElementById('openAddListingWatch').addEventListener('click', ()=>openAddListingForm('watch'));
 document.getElementById('openAddListingStrap').addEventListener('click', ()=>openAddListingForm('strap'));
@@ -957,18 +1030,17 @@ async function handleAddListing(e){
   const btn = document.getElementById('listingSubmitBtn');
   errorEl.textContent = '';
   const category = pendingListingCategory;
-  const file = document.getElementById('listingImage').files[0];
   const title = document.getElementById('listingTitle').value.trim();
   const description = document.getElementById('listingDesc').value.trim();
   const price = parseFloat(document.getElementById('listingPrice').value);
-  if(!file || !title || !description || isNaN(price)){
+  if(!cropImg || !title || !description || isNaN(price)){
     errorEl.textContent = 'Please fill in every field.';
     return;
   }
   btn.disabled = true; btn.textContent = 'Publishing…';
   try{
-    const image = await compressImage(file);
-    if(image.length > 900000) throw new Error('Image is too large even after compression — try a smaller photo.');
+    const image = cropCanvas.toDataURL('image/jpeg', 0.72);
+    if(image.length > 900000) throw new Error('Image is too large — try a different photo.');
     await addDoc(listingsCol, { category, title, description, price, image, createdAt: serverTimestamp() });
     closeOverlay();
   }catch(err){
