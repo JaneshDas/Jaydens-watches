@@ -983,7 +983,7 @@ function openListingDetail(item){
 function renderListingDetail(item, gallery){
   openOverlay(`
     <div class="product">
-      <div class="product-visual${gallery.length > 1 ? ' has-gallery' : ''}">
+      <div class="product-visual has-gallery">
         <div class="gallery">
           <div class="gallery-viewport">
             <img id="galleryMain" src="${gallery[galleryIndex]}" alt="${item.title}">
