@@ -1013,6 +1013,7 @@ document.getElementById('adminForm').addEventListener('submit', async e=>{
     localStorage.removeItem('jw_guest_ack');
     closeSplash();
   }catch(err){
+    console.error('Admin login error:', err.code || err.message || err);
     errorEl.textContent = 'Invalid username or password.';
   }
 });
