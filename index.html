@@ -252,14 +252,27 @@
     display:flex; align-items:center; justify-content:center; padding:56px 40px; position:sticky; top:40px;
   }
   .product-visual img{width:100%; max-width:380px; object-fit:contain;}
-  .gallery{display:flex; flex-direction:column; align-items:center; gap:16px; width:100%;}
-  .gallery-thumbs{display:flex; gap:8px; flex-wrap:wrap; justify-content:center;}
-  .gallery-thumb{
-    width:64px; height:64px; object-fit:cover; border:1px solid var(--line);
-    cursor:pointer; opacity:0.55; transition:opacity 0.15s ease;
+  .product-visual.has-gallery{padding:0; display:block;}
+  .gallery{width:100%;}
+  .gallery-viewport{position:relative; width:100%; aspect-ratio:4/3; overflow:hidden; background:var(--paper-2);}
+  .gallery-viewport img{width:100%; height:100%; object-fit:cover; display:block; max-width:none;}
+  .gallery-arrow{
+    position:absolute; top:50%; transform:translateY(-50%);
+    width:40px; height:40px; border-radius:50%; border:none;
+    background:rgba(20,20,20,0.4); color:#fff; font-size:1.5rem; line-height:1;
+    display:flex; align-items:center; justify-content:center; cursor:pointer;
+    transition:background 0.15s ease;
   }
-  .gallery-thumb:hover{opacity:1;}
-  .gallery-thumb.active{opacity:1; border-color:var(--ink);}
+  .gallery-arrow:hover{background:rgba(20,20,20,0.65);}
+  .gallery-arrow-left{left:14px;}
+  .gallery-arrow-right{right:14px;}
+  .gallery-dots{display:flex; gap:8px; justify-content:center; padding:16px 0;}
+  .gallery-dot{
+    width:8px; height:8px; padding:0; border-radius:50%; border:none;
+    background:var(--line); cursor:pointer; transition:background 0.15s ease, transform 0.15s ease;
+  }
+  .gallery-dot:hover{background:var(--blue);}
+  .gallery-dot.active{background:var(--ink); transform:scale(1.3);}
   .product .eyebrow{display:block; margin-bottom:16px;}
   .product h2{font-size:clamp(1.9rem,3.2vw,2.7rem); margin-bottom:10px;}
   .product-sub{color:var(--blue); font-style:italic; margin-bottom:34px; line-height:1.5;}
@@ -707,7 +720,14 @@ function closeOverlay(){
 }
 document.getElementById('overlayClose').addEventListener('click', closeOverlay);
 overlay.addEventListener('click', e=>{ if(e.target===overlay) closeOverlay(); });
-document.addEventListener('keydown', e=>{ if(e.key==='Escape' && overlay.classList.contains('open')) closeOverlay(); });
+document.addEventListener('keydown', e=>{
+  if(!overlay.classList.contains('open')) return;
+  if(e.key==='Escape'){ closeOverlay(); return; }
+  if(e.key==='ArrowLeft' || e.key==='ArrowRight'){
+    const dots = overlayBody.querySelectorAll('.gallery-dot');
+    if(dots.length > 1) stepGallery(e.key==='ArrowLeft' ? -1 : 1);
+  }
+});
 
 function openStrap(idx){
   const s = straps[idx];
@@ -954,19 +974,26 @@ document.querySelector('.watch-grid').addEventListener('click', handleListingGri
 document.getElementById('strapGrid').addEventListener('click', handleListingGridClick);
 
 let galleryIndex = 0;
+let galleryImages = [];
 function openListingDetail(item){
   galleryIndex = 0;
-  const gallery = [item.image, ...(item.images || [])];
-  renderListingDetail(item, gallery);
+  galleryImages = [item.image, ...(item.images || [])];
+  renderListingDetail(item, galleryImages);
 }
 function renderListingDetail(item, gallery){
   openOverlay(`
     <div class="product">
-      <div class="product-visual">
+      <div class="product-visual${gallery.length > 1 ? ' has-gallery' : ''}">
         <div class="gallery">
-          <img id="galleryMain" src="${gallery[galleryIndex]}" alt="${item.title}">
-          ${gallery.length > 1 ? `<div class="gallery-thumbs">${gallery.map((src,i)=>
-            `<img class="gallery-thumb${i===galleryIndex ? ' active' : ''}" data-idx="${i}" src="${src}" alt="${item.title} photo ${i+1}">`
+          <div class="gallery-viewport">
+            <img id="galleryMain" src="${gallery[galleryIndex]}" alt="${item.title}">
+            ${gallery.length > 1 ? `
+              <button type="button" class="gallery-arrow gallery-arrow-left" aria-label="Previous photo">&#8249;</button>
+              <button type="button" class="gallery-arrow gallery-arrow-right" aria-label="Next photo">&#8250;</button>
+            ` : ''}
+          </div>
+          ${gallery.length > 1 ? `<div class="gallery-dots">${gallery.map((src,i)=>
+            `<button type="button" class="gallery-dot${i===galleryIndex ? ' active' : ''}" data-idx="${i}" aria-label="Photo ${i+1}"></button>`
           ).join('')}</div>` : ''}
         </div>
       </div>
@@ -979,16 +1006,26 @@ function renderListingDetail(item, gallery){
         <button class="btn-add" data-addlisting>Add to cart</button>
       </div>
     </div>`);
-  overlayBody.querySelectorAll('.gallery-thumb').forEach(t=>{
-    t.addEventListener('click', ()=>{
-      galleryIndex = parseInt(t.dataset.idx, 10);
-      renderListingDetail(item, gallery);
-    });
+  overlayBody.querySelectorAll('.gallery-dot').forEach(d=>{
+    d.addEventListener('click', ()=> setGalleryIndex(parseInt(d.dataset.idx, 10)));
   });
+  const prevBtn = overlayBody.querySelector('.gallery-arrow-left');
+  const nextBtn = overlayBody.querySelector('.gallery-arrow-right');
+  if(prevBtn) prevBtn.addEventListener('click', ()=> stepGallery(-1));
+  if(nextBtn) nextBtn.addEventListener('click', ()=> stepGallery(1));
   overlayBody.querySelector('[data-addlisting]').addEventListener('click', ()=>{
     cart.push({type:'Listing', name:item.title, price:item.price, options:[item.description]});
     saveCart(); openCart();
   });
+}
+function stepGallery(delta){
+  setGalleryIndex((galleryIndex + delta + galleryImages.length) % galleryImages.length);
+}
+function setGalleryIndex(idx){
+  galleryIndex = idx;
+  const img = overlayBody.querySelector('#galleryMain');
+  if(img) img.src = galleryImages[galleryIndex];
+  overlayBody.querySelectorAll('.gallery-dot').forEach((d,i)=> d.classList.toggle('active', i===galleryIndex));
 }
 
 // Output resolution matches the listing card's photo frame (4:3), so the
