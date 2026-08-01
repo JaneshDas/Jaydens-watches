@@ -336,6 +336,20 @@
   .star-pick{background:none; border:none; font-size:1.9rem; line-height:1; color:var(--line); cursor:pointer; padding:0; transition:color 0.12s ease;}
   .star-pick:hover, .star-pick.sel{color:#c9972e;}
 
+  .review-list{margin-top:30px; display:flex; flex-direction:column; gap:24px; max-width:44ch;}
+  .review-item{padding-top:24px; border-top:1px solid var(--line-soft);}
+  .review-item:first-child{padding-top:0; border-top:none;}
+  .review-item-top{display:flex; align-items:center; justify-content:space-between; gap:12px;}
+  .review-item .stars{font-size:1.05rem; letter-spacing:3px;}
+  .review-item-text{margin:12px 0 8px; font-size:0.94rem; line-height:1.65; color:var(--ink-2); white-space:pre-wrap;}
+  .review-item-date{font-family:'Space Mono',monospace; font-size:0.68rem; color:var(--muted); letter-spacing:0.04em;}
+  .review-delete{
+    flex-shrink:0; width:26px; height:26px; border:1px solid var(--line); background:var(--paper);
+    color:var(--muted); cursor:pointer; font-size:0.95rem; line-height:1;
+    display:flex; align-items:center; justify-content:center; transition:all 0.15s ease;
+  }
+  .review-delete:hover{border-color:#a33; color:#a33;}
+
   .wl-list{margin-top:34px; max-height:340px; overflow-y:auto; border-top:1px solid var(--line);}
   .wl-row{display:flex; align-items:center; gap:14px; padding:14px 2px; border-bottom:1px solid var(--line-soft);}
   .wl-row .wl-info{flex:1; min-width:0;}
@@ -600,7 +614,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/fireba
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged,
   sendSignInLinkToEmail, isSignInWithEmailLink, signInWithEmailLink }
   from "https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js";
-import { getFirestore, collection, addDoc, deleteDoc, doc, getDoc, setDoc, writeBatch, onSnapshot, query, orderBy, serverTimestamp }
+import { getFirestore, collection, addDoc, deleteDoc, doc, getDoc, setDoc, updateDoc, writeBatch, onSnapshot, query, orderBy, serverTimestamp }
   from "https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -638,26 +652,83 @@ if(isReviewLinkReturn) localStorage.setItem('jw_guest_ack', '1');
 function normalizeEmail(email){ return email.trim().toLowerCase(); }
 function whitelistDocId(listingId, email){ return `${listingId}__${normalizeEmail(email)}`; }
 
+// Review text is written by any verified customer, not just the admin, so
+// it has to be escaped before going into innerHTML — otherwise a reviewer
+// could plant a script in their review that runs for every visitor.
+function escapeHtml(str){
+  return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
 function reviewStatsFor(listingId){
   const list = reviews.filter(r=>r.listingId===listingId);
   if(list.length===0) return {count:0, avg:0};
   const avg = list.reduce((sum,r)=>sum+r.rating, 0) / list.length;
   return {count:list.length, avg};
 }
-function reviewSummaryHtml(listingId){
-  const {count, avg} = reviewStatsFor(listingId);
-  if(count===0) return `<span class="review-none">No reviews yet</span>`;
-  const pct = (avg/5*100).toFixed(0);
+function starsHtmlFor(pct){
   return `
     <div class="stars" style="--pct:${pct}%">
       <div class="stars-bg">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
       <div class="stars-fg">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
-    </div>
+    </div>`;
+}
+function reviewSummaryHtml(listingId){
+  const {count, avg} = reviewStatsFor(listingId);
+  if(count===0) return `<span class="review-none">No reviews yet</span>`;
+  return `${starsHtmlFor((avg/5*100).toFixed(0))}
     <span class="review-avg">${avg.toFixed(1)} out of 5 &middot; ${count} review${count===1 ? '' : 's'}</span>`;
 }
+function formatReviewDate(ts){
+  if(!ts || typeof ts.toDate !== 'function') return 'Just now';
+  return ts.toDate().toLocaleDateString(undefined, {year:'numeric', month:'short', day:'numeric'});
+}
+function reviewListHtml(listingId){
+  const list = reviews.filter(r=>r.listingId===listingId);
+  if(list.length===0) return '';
+  return `<div class="review-list">${list.map(r=>`
+    <div class="review-item">
+      <div class="review-item-top">
+        ${starsHtmlFor((r.rating/5*100).toFixed(0))}
+        ${isAdmin ? `<button type="button" class="review-delete" data-review-del="${r.id}" aria-label="Delete review">&times;</button>` : ''}
+      </div>
+      <p class="review-item-text">${escapeHtml(r.text)}</p>
+      <div class="review-item-date">Verified purchase &middot; ${formatReviewDate(r.createdAt)}</div>
+    </div>`).join('')}</div>`;
+}
+function wireReviewDeleteButtons(){
+  overlayBody.querySelectorAll('[data-review-del]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const review = reviews.find(r=>r.id===btn.dataset.reviewDel);
+      if(review) handleDeleteReview(review);
+    });
+  });
+}
+async function handleDeleteReview(review){
+  if(!confirm('Delete this review? This cannot be undone.')) return;
+  try{
+    await deleteDoc(doc(db, 'reviews', review.id));
+  }catch(err){
+    console.error('Delete review error:', err.code || err.message || err);
+    alert('Something went wrong deleting this review.');
+    return;
+  }
+  // Best-effort: free up the whitelist entry so the customer could leave a
+  // new review, if wanted. Non-fatal if it's already gone — the review
+  // itself is already deleted either way.
+  try{
+    await updateDoc(doc(db, 'reviewWhitelist', whitelistDocId(review.listingId, review.email)), {reviewed:false, reviewedAt:null});
+  }catch(err){
+    console.warn('Could not reset whitelist entry after deleting review:', err.code || err.message || err);
+  }
+}
 function updateReviewSummary(listingId){
-  const el = overlayBody.querySelector('.review-summary');
-  if(el) el.innerHTML = reviewSummaryHtml(listingId);
+  const summaryEl = overlayBody.querySelector('.review-summary');
+  if(summaryEl) summaryEl.innerHTML = reviewSummaryHtml(listingId);
+  const listEl = overlayBody.querySelector('#reviewListWrap');
+  if(listEl){
+    listEl.innerHTML = reviewListHtml(listingId);
+    wireReviewDeleteButtons();
+  }
 }
 
 // ---------- HERO CLOCK ----------
@@ -1122,9 +1193,11 @@ function renderListingDetail(item, gallery){
         <div class="review-block">
           <div class="review-summary">${reviewSummaryHtml(item.id)}</div>
           <button class="btn btn-ghost" data-write-review>Write a review</button>
+          <div class="review-list-wrap" id="reviewListWrap">${reviewListHtml(item.id)}</div>
         </div>
       </div>
     </div>`, {fullBleed:true});
+  wireReviewDeleteButtons();
   overlayBody.querySelectorAll('.gallery-dot').forEach(d=>{
     d.addEventListener('click', ()=> setGalleryIndex(parseInt(d.dataset.idx, 10)));
   });
