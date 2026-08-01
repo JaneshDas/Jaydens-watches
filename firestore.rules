@@ -13,13 +13,18 @@ service cloud.firestore {
     }
 
     // Reviews are public to read (so average ratings can show for everyone).
-    // A review can only be created if it names a reviewWhitelist entry
-    // (see below) that exists and hasn't been used yet — that entry is the
-    // proof the reviewer's email was matched to a real purchase by the admin.
+    // A review can only be created by a caller who (a) is signed in via
+    // Firebase Auth email-link verification AS the exact email on the
+    // review — proving they control that inbox, not just that they typed
+    // it in — and (b) names a reviewWhitelist entry (see below) that
+    // exists and hasn't been used yet, proving the admin matched that
+    // email to a real purchase.
     match /reviews/{reviewId} {
       allow read: if true;
       allow update, delete: if isAdmin();
       allow create: if isAdmin() || (
+        request.auth != null &&
+        request.auth.token.email == request.resource.data.email &&
         request.resource.data.keys().hasOnly(['listingId','email','rating','text','createdAt']) &&
         request.resource.data.listingId is string &&
         request.resource.data.email is string &&
@@ -36,12 +41,16 @@ service cloud.firestore {
     // That means a single `get` by id only confirms/denies the exact
     // listing+email pair the caller already typed in — it can't be used to
     // browse or enumerate other customers' emails. Only the admin can list
-    // the full collection (to manage it) or create/delete entries.
+    // the full collection (to manage it) or create/delete entries. Flipping
+    // an entry to Reviewed additionally requires the caller to be signed in
+    // (via email-link verification) as the exact email on that entry.
     match /reviewWhitelist/{whitelistId} {
       allow get: if true;
       allow list: if isAdmin();
       allow create, delete: if isAdmin();
       allow update: if isAdmin() || (
+        request.auth != null &&
+        request.auth.token.email == resource.data.email &&
         resource.data.reviewed == false &&
         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['reviewed','reviewedAt']) &&
         request.resource.data.reviewed == true &&

@@ -597,7 +597,8 @@
 <script type="module">
 // ---------- FIREBASE ----------
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged }
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged,
+  sendSignInLinkToEmail, isSignInWithEmailLink, signInWithEmailLink }
   from "https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js";
 import { getFirestore, collection, addDoc, deleteDoc, doc, getDoc, setDoc, writeBatch, onSnapshot, query, orderBy, serverTimestamp }
   from "https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js";
@@ -623,6 +624,16 @@ let listings = [];
 let reviews = [];
 let whitelist = [];
 let whitelistUnsub = null;
+
+// Reviewer email verification (magic link). If this load *is* someone
+// arriving back from their verification email, suppress the welcome splash
+// immediately — before anything async runs — so it can't race the resume flow.
+const reviewActionCodeSettings = {
+  url: window.location.origin + window.location.pathname,
+  handleCodeInApp: true,
+};
+const isReviewLinkReturn = isSignInWithEmailLink(auth, window.location.href);
+if(isReviewLinkReturn) localStorage.setItem('jw_guest_ack', '1');
 
 function normalizeEmail(email){ return email.trim().toLowerCase(); }
 function whitelistDocId(listingId, email){ return `${listingId}__${normalizeEmail(email)}`; }
@@ -962,7 +973,10 @@ document.getElementById('authLink').addEventListener('click', e=>{
 
 let authResolved = false;
 onAuthStateChanged(auth, user=>{
-  isAdmin = !!user;
+  // A signed-in user isn't necessarily the admin — reviewers now sign in
+  // too, via their own email-link verification. Only the exact admin email
+  // should ever flip on admin UI/permissions.
+  isAdmin = !!user && user.email === ADMIN_EMAIL;
   updateAdminUI();
   if(!authResolved){
     authResolved = true;
@@ -1160,25 +1174,57 @@ function openReviewEmailStep(item){
     errEl.textContent = '';
     if(!email || !email.includes('@')){ errEl.textContent = 'Enter a valid email address.'; return; }
     continueBtn.disabled = true; continueBtn.textContent = 'Checking…';
+    const normalized = normalizeEmail(email);
     try{
-      const wlRef = doc(db, 'reviewWhitelist', whitelistDocId(item.id, email));
+      const wlRef = doc(db, 'reviewWhitelist', whitelistDocId(item.id, normalized));
       const snap = await getDoc(wlRef);
       if(!snap.exists()){
         errEl.textContent = "We couldn't find a purchase under that email for this item. Double-check it, or message us if you think this is a mistake.";
       }else if(snap.data().reviewed){
         errEl.textContent = 'This purchase has already been reviewed.';
       }else{
-        openReviewFormStep(item, normalizeEmail(email));
+        await sendSignInLinkToEmail(auth, normalized, reviewActionCodeSettings);
+        localStorage.setItem('jw_review_email', normalized);
+        localStorage.setItem('jw_review_listing', item.id);
+        openReviewLinkSentStep(item, normalized);
         return;
       }
     }catch(err){
-      console.error('Review whitelist lookup error:', err.code || err.message || err);
+      console.error('Review email step error:', err.code || err.message || err);
       errEl.textContent = 'Something went wrong &mdash; please try again.';
     }
     continueBtn.disabled = false; continueBtn.textContent = 'Continue';
   }
   continueBtn.addEventListener('click', trySubmit);
   emailInput.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); trySubmit(); } });
+}
+
+function openReviewLinkSentStep(item, email){
+  openOverlay(`
+    <div class="product" style="grid-template-columns:1fr; max-width:480px; margin:0 auto; text-align:center;">
+      <div>
+        <span class="eyebrow">Check your email</span>
+        <h2>Verify it's you</h2>
+        <p class="product-note" style="margin:0 auto 20px;">We've sent a verification link to <strong>${email}</strong>. Open it on this device to confirm it's really you, and you'll be brought straight back here to finish your review of ${item.title}.</p>
+        <div class="form-error" id="reviewSentNote" style="color:var(--muted);"></div>
+        <button type="button" class="btn-add" id="reviewResendBtn">Resend link</button>
+        <button type="button" class="btn btn-ghost" id="reviewBackBtn" style="margin-top:12px;">Use a different email</button>
+      </div>
+    </div>`);
+  document.getElementById('reviewBackBtn').addEventListener('click', ()=> openListingDetail(item));
+  const resendBtn = document.getElementById('reviewResendBtn');
+  const noteEl = document.getElementById('reviewSentNote');
+  resendBtn.addEventListener('click', async ()=>{
+    resendBtn.disabled = true; resendBtn.textContent = 'Sending…'; noteEl.textContent = '';
+    try{
+      await sendSignInLinkToEmail(auth, email, reviewActionCodeSettings);
+      noteEl.textContent = 'Link sent again.';
+    }catch(err){
+      console.error('Resend link error:', err.code || err.message || err);
+      noteEl.textContent = 'Something went wrong &mdash; please try again.';
+    }
+    resendBtn.disabled = false; resendBtn.textContent = 'Resend link';
+  });
 }
 
 function openReviewFormStep(item, email){
@@ -1224,6 +1270,7 @@ function openReviewFormStep(item, email){
       batch.set(doc(reviewsCol), {listingId:item.id, email, rating, text, createdAt: serverTimestamp()});
       batch.update(doc(db, 'reviewWhitelist', whitelistDocId(item.id, email)), {reviewed:true, reviewedAt: serverTimestamp()});
       await batch.commit();
+      try{ await signOut(auth); }catch(e){}
       openReviewThanks(item);
     }catch(err){
       console.error('Review submit error:', err.code || err.message || err);
@@ -1245,6 +1292,57 @@ function openReviewThanks(item){
     </div>`);
   document.getElementById('reviewDoneBtn').addEventListener('click', ()=> openListingDetail(item));
 }
+
+// Runs on page load when the URL is a Firebase email-link sign-in callback
+// (i.e. the visitor just clicked the verification link from their inbox).
+async function completeReviewEmailLinkSignIn(){
+  let email = localStorage.getItem('jw_review_email');
+  if(!email){
+    // Opened on a different device/browser than where the link was requested.
+    email = window.prompt("Confirm the email address you used to request this review link:");
+    if(!email){ history.replaceState(null, '', window.location.pathname); return; }
+    email = normalizeEmail(email);
+  }
+  try{
+    await signInWithEmailLink(auth, email, window.location.href);
+  }catch(err){
+    console.error('Email link sign-in error:', err.code || err.message || err);
+    window.alert("That verification link is invalid or has expired — please go back to the item and request a new one.");
+    history.replaceState(null, '', window.location.pathname);
+    return;
+  }
+  const listingId = localStorage.getItem('jw_review_listing');
+  localStorage.removeItem('jw_review_email');
+  localStorage.removeItem('jw_review_listing');
+  history.replaceState(null, '', window.location.pathname);
+  if(!listingId){
+    window.alert("You're verified! Please reopen the item you'd like to review.");
+    return;
+  }
+  let item = listings.find(l=>l.id===listingId);
+  if(!item){
+    try{
+      const snap = await getDoc(doc(listingsCol, listingId));
+      if(snap.exists()) item = {id:snap.id, ...snap.data()};
+    }catch(e){}
+  }
+  if(!item){
+    window.alert("You're verified, but we couldn't find that item anymore.");
+    return;
+  }
+  try{
+    const wlSnap = await getDoc(doc(db, 'reviewWhitelist', whitelistDocId(item.id, email)));
+    if(!wlSnap.exists() || wlSnap.data().reviewed){
+      window.alert('This review link is no longer valid — the purchase entry may have already been reviewed or removed.');
+      try{ await signOut(auth); }catch(e){}
+      return;
+    }
+  }catch(err){
+    console.error('Post-verification whitelist check error:', err.code || err.message || err);
+  }
+  openReviewFormStep(item, email);
+}
+if(isReviewLinkReturn) completeReviewEmailLinkSignIn();
 
 // ---------- REVIEW WHITELIST (admin) ----------
 document.getElementById('reviewAdminLink').addEventListener('click', e=>{
