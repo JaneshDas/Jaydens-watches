@@ -239,12 +239,32 @@
     max-width:1120px; margin:0 auto; padding:80px 6vw 100px; position:relative;
   }
   .overlay-close{
-    position:absolute; top:24px; right:6vw;
+    position:absolute; top:24px; right:6vw; z-index:10;
     background:none; border:1px solid var(--line); color:var(--ink);
     width:44px; height:44px; font-size:1.2rem; cursor:pointer; line-height:1;
     display:flex; align-items:center; justify-content:center; transition:all 0.2s ease;
   }
   .overlay-close:hover{background:var(--ink); color:var(--paper);}
+  .overlay-inner.full-bleed{max-width:none; padding:0; min-height:100vh;}
+  .overlay-inner.full-bleed .overlay-close{background:var(--paper);}
+
+  /* ---------- WATCH DETAIL (full-screen) ---------- */
+  .watch-detail{display:grid; grid-template-columns:1fr 1fr; min-height:100vh;}
+  .watch-detail-media{position:relative; background:var(--paper-2);}
+  .watch-detail-media .gallery-viewport{position:sticky; top:0; width:100%; height:100vh; aspect-ratio:auto;}
+  .watch-detail-media .gallery-dots{
+    position:absolute; bottom:0; left:0; right:0; margin:0; z-index:2;
+    padding:34px 0 22px; background:linear-gradient(to top, rgba(0,0,0,0.4), transparent);
+  }
+  .watch-detail-media .gallery-dot{background:rgba(255,255,255,0.55);}
+  .watch-detail-media .gallery-dot:hover{background:#fff;}
+  .watch-detail-media .gallery-dot.active{background:#fff;}
+  .watch-detail-info{padding:min(14vh,120px) 64px 80px; display:flex; flex-direction:column; justify-content:center;}
+  @media (max-width:860px){
+    .watch-detail{grid-template-columns:1fr;}
+    .watch-detail-media .gallery-viewport{position:relative; height:62vh;}
+    .watch-detail-info{padding:48px 6vw 64px;}
+  }
 
   .product{display:grid; grid-template-columns:1fr 1fr; gap:60px; align-items:start;}
   .product-visual{
@@ -705,13 +725,15 @@ function updateCartCount(){
 
 const overlay = document.getElementById('overlay');
 const overlayBody = document.getElementById('overlayBody');
-function openOverlay(html){
+const overlayInner = overlay.querySelector('.overlay-inner');
+function openOverlay(html, opts={}){
   overlayBody.onclick = null;
   overlayBody.innerHTML = html;
   overlay.classList.add('open');
   overlay.setAttribute('aria-hidden','false');
   document.body.style.overflow = 'hidden';
   overlay.scrollTop = 0;
+  overlayInner.classList.toggle('full-bleed', !!opts.fullBleed);
 }
 function closeOverlay(){
   overlay.classList.remove('open');
@@ -982,22 +1004,20 @@ function openListingDetail(item){
 }
 function renderListingDetail(item, gallery){
   openOverlay(`
-    <div class="product">
-      <div class="product-visual has-gallery">
-        <div class="gallery">
-          <div class="gallery-viewport">
-            <img id="galleryMain" src="${gallery[galleryIndex]}" alt="${item.title}">
-            ${gallery.length > 1 ? `
-              <button type="button" class="gallery-arrow gallery-arrow-left" aria-label="Previous photo">&#8249;</button>
-              <button type="button" class="gallery-arrow gallery-arrow-right" aria-label="Next photo">&#8250;</button>
-            ` : ''}
-          </div>
-          ${gallery.length > 1 ? `<div class="gallery-dots">${gallery.map((src,i)=>
-            `<button type="button" class="gallery-dot${i===galleryIndex ? ' active' : ''}" data-idx="${i}" aria-label="Photo ${i+1}"></button>`
-          ).join('')}</div>` : ''}
+    <div class="watch-detail">
+      <div class="watch-detail-media">
+        <div class="gallery-viewport">
+          <img id="galleryMain" src="${gallery[galleryIndex]}" alt="${item.title}">
+          ${gallery.length > 1 ? `
+            <button type="button" class="gallery-arrow gallery-arrow-left" aria-label="Previous photo">&#8249;</button>
+            <button type="button" class="gallery-arrow gallery-arrow-right" aria-label="Next photo">&#8250;</button>
+          ` : ''}
         </div>
+        ${gallery.length > 1 ? `<div class="gallery-dots">${gallery.map((src,i)=>
+          `<button type="button" class="gallery-dot${i===galleryIndex ? ' active' : ''}" data-idx="${i}" aria-label="Photo ${i+1}"></button>`
+        ).join('')}</div>` : ''}
       </div>
-      <div>
+      <div class="watch-detail-info">
         <span class="eyebrow">Watch</span>
         <h2>${item.title}</h2>
         <div class="product-sub">${item.description}</div>
@@ -1005,7 +1025,7 @@ function renderListingDetail(item, gallery){
         <p class="product-note">Assembled to order. No online checkout &mdash; add to your cart and send us an enquiry to confirm details, final price, and delivery.</p>
         <button class="btn-add" data-addlisting>Add to cart</button>
       </div>
-    </div>`);
+    </div>`, {fullBleed:true});
   overlayBody.querySelectorAll('.gallery-dot').forEach(d=>{
     d.addEventListener('click', ()=> setGalleryIndex(parseInt(d.dataset.idx, 10)));
   });
