@@ -2,10 +2,52 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
+    function isAdmin() {
+      return request.auth != null
+             && request.auth.token.email == 'janeshdas219@gmail.com';
+    }
+
     match /listings/{listingId} {
       allow read: if true;
-      allow write: if request.auth != null
-                    && request.auth.token.email == 'janeshdas219@gmail.com';
+      allow write: if isAdmin();
+    }
+
+    // Reviews are public to read (so average ratings can show for everyone).
+    // A review can only be created if it names a reviewWhitelist entry
+    // (see below) that exists and hasn't been used yet — that entry is the
+    // proof the reviewer's email was matched to a real purchase by the admin.
+    match /reviews/{reviewId} {
+      allow read: if true;
+      allow update, delete: if isAdmin();
+      allow create: if isAdmin() || (
+        request.resource.data.keys().hasOnly(['listingId','email','rating','text','createdAt']) &&
+        request.resource.data.listingId is string &&
+        request.resource.data.email is string &&
+        request.resource.data.rating is int &&
+        request.resource.data.rating >= 1 && request.resource.data.rating <= 5 &&
+        request.resource.data.text is string &&
+        request.resource.data.text.size() > 0 && request.resource.data.text.size() <= 2000 &&
+        exists(/databases/$(database)/documents/reviewWhitelist/$(request.resource.data.listingId + '__' + request.resource.data.email)) &&
+        get(/databases/$(database)/documents/reviewWhitelist/$(request.resource.data.listingId + '__' + request.resource.data.email)).data.reviewed == false
+      );
+    }
+
+    // Whitelist doc ids are always `${listingId}__${email}` (deterministic).
+    // That means a single `get` by id only confirms/denies the exact
+    // listing+email pair the caller already typed in — it can't be used to
+    // browse or enumerate other customers' emails. Only the admin can list
+    // the full collection (to manage it) or create/delete entries.
+    match /reviewWhitelist/{whitelistId} {
+      allow get: if true;
+      allow list: if isAdmin();
+      allow create, delete: if isAdmin();
+      allow update: if isAdmin() || (
+        resource.data.reviewed == false &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['reviewed','reviewedAt']) &&
+        request.resource.data.reviewed == true &&
+        request.resource.data.listingId == resource.data.listingId &&
+        request.resource.data.email == resource.data.email
+      );
     }
   }
 }

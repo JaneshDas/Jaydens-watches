@@ -324,6 +324,30 @@
   }
   .btn-add:hover{background:var(--blue); border-color:var(--blue);}
 
+  /* ---------- REVIEWS ---------- */
+  .review-block{margin-top:36px; padding-top:30px; border-top:1px solid var(--line);}
+  .review-summary{display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:16px; min-height:1.4em;}
+  .stars{position:relative; display:inline-block; font-size:1.2rem; line-height:1; letter-spacing:2px;}
+  .stars-bg{color:var(--line);}
+  .stars-fg{position:absolute; top:0; left:0; width:var(--pct,0%); overflow:hidden; white-space:nowrap; color:#c9972e;}
+  .review-avg{font-family:'Space Mono',monospace; font-size:0.78rem; color:var(--muted);}
+  .review-none{font-family:'Space Mono',monospace; font-size:0.78rem; color:var(--muted);}
+  .star-picker{display:flex; gap:8px;}
+  .star-pick{background:none; border:none; font-size:1.9rem; line-height:1; color:var(--line); cursor:pointer; padding:0; transition:color 0.12s ease;}
+  .star-pick:hover, .star-pick.sel{color:#c9972e;}
+
+  .wl-list{margin-top:34px; max-height:340px; overflow-y:auto; border-top:1px solid var(--line);}
+  .wl-row{display:flex; align-items:center; gap:14px; padding:14px 2px; border-bottom:1px solid var(--line-soft);}
+  .wl-row .wl-info{flex:1; min-width:0;}
+  .wl-row .wl-item{font-size:0.92rem;}
+  .wl-row .wl-email{font-family:'Space Mono',monospace; font-size:0.74rem; color:var(--muted); margin-top:3px; word-break:break-all;}
+  .wl-remove{
+    flex-shrink:0; width:28px; height:28px; border:1px solid var(--line); background:var(--paper);
+    color:var(--muted); cursor:pointer; font-size:1rem; line-height:1;
+    display:flex; align-items:center; justify-content:center; transition:all 0.15s ease;
+  }
+  .wl-remove:hover{border-color:#a33; color:#a33;}
+
   /* ---------- CART ---------- */
   .cart h2{font-size:clamp(1.9rem,3.2vw,2.7rem); margin-bottom:8px;}
   .cart-lead{color:var(--muted); margin-bottom:44px; max-width:56ch; line-height:1.7;}
@@ -432,6 +456,7 @@
   <div class="wordmark">Jayden's<small>Watches</small></div>
   <div class="nav-right">
     <a href="#straps">Configure</a>
+    <a href="#" id="reviewAdminLink" style="display:none;">Reviews</a>
     <a href="#" id="authLink">Admin</a>
     <a href="#" id="cartLink" aria-label="Cart">Cart (0)</a>
   </div>
@@ -574,7 +599,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged }
   from "https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js";
-import { getFirestore, collection, addDoc, deleteDoc, doc, onSnapshot, query, orderBy, serverTimestamp }
+import { getFirestore, collection, addDoc, deleteDoc, doc, getDoc, setDoc, writeBatch, onSnapshot, query, orderBy, serverTimestamp }
   from "https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -591,8 +616,38 @@ const firebaseApp = initializeApp(firebaseConfig);
 const auth = getAuth(firebaseApp);
 const db = getFirestore(firebaseApp);
 const listingsCol = collection(db, 'listings');
+const reviewsCol = collection(db, 'reviews');
+const reviewWhitelistCol = collection(db, 'reviewWhitelist');
 let isAdmin = false;
 let listings = [];
+let reviews = [];
+let whitelist = [];
+let whitelistUnsub = null;
+
+function normalizeEmail(email){ return email.trim().toLowerCase(); }
+function whitelistDocId(listingId, email){ return `${listingId}__${normalizeEmail(email)}`; }
+
+function reviewStatsFor(listingId){
+  const list = reviews.filter(r=>r.listingId===listingId);
+  if(list.length===0) return {count:0, avg:0};
+  const avg = list.reduce((sum,r)=>sum+r.rating, 0) / list.length;
+  return {count:list.length, avg};
+}
+function reviewSummaryHtml(listingId){
+  const {count, avg} = reviewStatsFor(listingId);
+  if(count===0) return `<span class="review-none">No reviews yet</span>`;
+  const pct = (avg/5*100).toFixed(0);
+  return `
+    <div class="stars" style="--pct:${pct}%">
+      <div class="stars-bg">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+      <div class="stars-fg">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+    </div>
+    <span class="review-avg">${avg.toFixed(1)} out of 5 &middot; ${count} review${count===1 ? '' : 's'}</span>`;
+}
+function updateReviewSummary(listingId){
+  const el = overlayBody.querySelector('.review-summary');
+  if(el) el.innerHTML = reviewSummaryHtml(listingId);
+}
 
 // ---------- HERO CLOCK ----------
 const ticks = document.getElementById('ticks');
@@ -729,6 +784,7 @@ const overlayInner = overlay.querySelector('.overlay-inner');
 function openOverlay(html, opts={}){
   overlayBody.onclick = null;
   overlayBody.innerHTML = html;
+  overlayBody.dataset.view = opts.view || '';
   overlay.classList.add('open');
   overlay.setAttribute('aria-hidden','false');
   document.body.style.overflow = 'hidden';
@@ -918,6 +974,8 @@ function updateAdminUI(){
   document.getElementById('authLink').textContent = isAdmin ? 'Log out' : 'Admin';
   document.getElementById('addListingWrapWatches').style.display = isAdmin ? 'block' : 'none';
   document.getElementById('addListingWrapStraps').style.display = isAdmin ? 'block' : 'none';
+  document.getElementById('reviewAdminLink').style.display = isAdmin ? 'inline' : 'none';
+  if(isAdmin) startWhitelistListener(); else stopWhitelistListener();
   renderWatchListings();
   render();
 }
@@ -927,6 +985,27 @@ onSnapshot(query(listingsCol, orderBy('createdAt','desc')), snap=>{
   renderWatchListings();
   render();
 });
+
+// Public: anyone can read reviews (needed to show average ratings).
+onSnapshot(query(reviewsCol, orderBy('createdAt','desc')), snap=>{
+  reviews = snap.docs.map(d=>({id:d.id, ...d.data()}));
+  if(currentDetailItem) updateReviewSummary(currentDetailItem.id);
+});
+
+// Admin-only: the whitelist collection can only be *listed* by the admin
+// (see firestore.rules) — individual docs can still be looked up by their
+// deterministic id from the public review-verification flow.
+function startWhitelistListener(){
+  if(whitelistUnsub) return;
+  whitelistUnsub = onSnapshot(query(reviewWhitelistCol, orderBy('createdAt','desc')), snap=>{
+    whitelist = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    if(overlayBody.dataset.view === 'reviewAdmin') renderReviewAdminOverlay();
+  }, err=>console.error('Whitelist listener error:', err.code || err.message || err));
+}
+function stopWhitelistListener(){
+  if(whitelistUnsub){ whitelistUnsub(); whitelistUnsub = null; }
+  whitelist = [];
+}
 
 function listingCardHtml(item){
   return `
@@ -997,9 +1076,11 @@ document.getElementById('strapGrid').addEventListener('click', handleListingGrid
 
 let galleryIndex = 0;
 let galleryImages = [];
+let currentDetailItem = null;
 function openListingDetail(item){
   galleryIndex = 0;
   galleryImages = [item.image, ...(item.images || [])];
+  currentDetailItem = item;
   renderListingDetail(item, galleryImages);
 }
 function renderListingDetail(item, gallery){
@@ -1024,6 +1105,10 @@ function renderListingDetail(item, gallery){
         <div class="product-price">$${item.price}</div>
         <p class="product-note">Assembled to order. No online checkout &mdash; add to your cart and send us an enquiry to confirm details, final price, and delivery.</p>
         <button class="btn-add" data-addlisting>Add to cart</button>
+        <div class="review-block">
+          <div class="review-summary">${reviewSummaryHtml(item.id)}</div>
+          <button class="btn btn-ghost" data-write-review>Write a review</button>
+        </div>
       </div>
     </div>`, {fullBleed:true});
   overlayBody.querySelectorAll('.gallery-dot').forEach(d=>{
@@ -1037,6 +1122,7 @@ function renderListingDetail(item, gallery){
     cart.push({type:'Listing', name:item.title, price:item.price, options:[item.description]});
     saveCart(); openCart();
   });
+  overlayBody.querySelector('[data-write-review]').addEventListener('click', ()=> openReviewEmailStep(item));
 }
 function stepGallery(delta){
   setGalleryIndex((galleryIndex + delta + galleryImages.length) % galleryImages.length);
@@ -1046,6 +1132,192 @@ function setGalleryIndex(idx){
   const img = overlayBody.querySelector('#galleryMain');
   if(img) img.src = galleryImages[galleryIndex];
   overlayBody.querySelectorAll('.gallery-dot').forEach((d,i)=> d.classList.toggle('active', i===galleryIndex));
+}
+
+// ---------- REVIEW FLOW (customer-facing) ----------
+function openReviewEmailStep(item){
+  openOverlay(`
+    <div class="product" style="grid-template-columns:1fr; max-width:480px; margin:0 auto;">
+      <div>
+        <span class="eyebrow">Write a review</span>
+        <h2>${item.title}</h2>
+        <p class="product-note">Enter the email address you used when you bought this piece &mdash; we'll check it against our records.</p>
+        <div class="field-group">
+          <label class="field-label" for="reviewEmail">Your email</label>
+          <input class="field-input" type="email" id="reviewEmail" autocomplete="email" required>
+        </div>
+        <div class="form-error" id="reviewEmailError"></div>
+        <button type="button" class="btn-add" id="reviewEmailContinue">Continue</button>
+        <button type="button" class="btn btn-ghost" id="reviewCancelBtn" style="margin-top:12px;">Cancel</button>
+      </div>
+    </div>`);
+  const emailInput = document.getElementById('reviewEmail');
+  const errEl = document.getElementById('reviewEmailError');
+  const continueBtn = document.getElementById('reviewEmailContinue');
+  document.getElementById('reviewCancelBtn').addEventListener('click', ()=> openListingDetail(item));
+  async function trySubmit(){
+    const email = emailInput.value.trim();
+    errEl.textContent = '';
+    if(!email || !email.includes('@')){ errEl.textContent = 'Enter a valid email address.'; return; }
+    continueBtn.disabled = true; continueBtn.textContent = 'Checking…';
+    try{
+      const wlRef = doc(db, 'reviewWhitelist', whitelistDocId(item.id, email));
+      const snap = await getDoc(wlRef);
+      if(!snap.exists()){
+        errEl.textContent = "We couldn't find a purchase under that email for this item. Double-check it, or message us if you think this is a mistake.";
+      }else if(snap.data().reviewed){
+        errEl.textContent = 'This purchase has already been reviewed.';
+      }else{
+        openReviewFormStep(item, normalizeEmail(email));
+        return;
+      }
+    }catch(err){
+      console.error('Review whitelist lookup error:', err.code || err.message || err);
+      errEl.textContent = 'Something went wrong &mdash; please try again.';
+    }
+    continueBtn.disabled = false; continueBtn.textContent = 'Continue';
+  }
+  continueBtn.addEventListener('click', trySubmit);
+  emailInput.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); trySubmit(); } });
+}
+
+function openReviewFormStep(item, email){
+  let rating = 0;
+  const starsHtml = ()=> [1,2,3,4,5].map(n=>
+    `<button type="button" class="star-pick" data-star="${n}" aria-label="${n} star${n>1?'s':''}">&#9733;</button>`
+  ).join('');
+  openOverlay(`
+    <div class="product" style="grid-template-columns:1fr; max-width:480px; margin:0 auto;">
+      <div>
+        <span class="eyebrow">Write a review</span>
+        <h2>${item.title}</h2>
+        <div class="field-group">
+          <label class="field-label">Your rating</label>
+          <div class="star-picker" id="starPicker">${starsHtml()}</div>
+        </div>
+        <div class="field-group">
+          <label class="field-label" for="reviewText">Your review</label>
+          <textarea class="field-input" id="reviewText" rows="5" placeholder="What did you think?" required></textarea>
+        </div>
+        <div class="form-error" id="reviewFormError"></div>
+        <button type="button" class="btn-add" id="reviewSubmitBtn">Submit review</button>
+      </div>
+    </div>`);
+  const picker = document.getElementById('starPicker');
+  picker.addEventListener('click', e=>{
+    const b = e.target.closest('[data-star]');
+    if(!b) return;
+    rating = parseInt(b.dataset.star, 10);
+    picker.querySelectorAll('.star-pick').forEach(el=>
+      el.classList.toggle('sel', parseInt(el.dataset.star, 10) <= rating));
+  });
+  const submitBtn = document.getElementById('reviewSubmitBtn');
+  const errEl = document.getElementById('reviewFormError');
+  submitBtn.addEventListener('click', async ()=>{
+    const text = document.getElementById('reviewText').value.trim();
+    errEl.textContent = '';
+    if(rating < 1 || rating > 5){ errEl.textContent = 'Select a star rating.'; return; }
+    if(!text){ errEl.textContent = 'Write a few words about your review.'; return; }
+    submitBtn.disabled = true; submitBtn.textContent = 'Submitting…';
+    try{
+      const batch = writeBatch(db);
+      batch.set(doc(reviewsCol), {listingId:item.id, email, rating, text, createdAt: serverTimestamp()});
+      batch.update(doc(db, 'reviewWhitelist', whitelistDocId(item.id, email)), {reviewed:true, reviewedAt: serverTimestamp()});
+      await batch.commit();
+      openReviewThanks(item);
+    }catch(err){
+      console.error('Review submit error:', err.code || err.message || err);
+      errEl.textContent = 'Something went wrong submitting your review &mdash; please try again.';
+      submitBtn.disabled = false; submitBtn.textContent = 'Submit review';
+    }
+  });
+}
+
+function openReviewThanks(item){
+  openOverlay(`
+    <div class="product" style="grid-template-columns:1fr; max-width:480px; margin:0 auto; text-align:center;">
+      <div>
+        <span class="eyebrow">Thank you</span>
+        <h2>Review submitted</h2>
+        <p class="product-note" style="margin-left:auto; margin-right:auto;">Thanks for taking the time to review your ${item.title}.</p>
+        <button type="button" class="btn-add" id="reviewDoneBtn">Back to ${item.title}</button>
+      </div>
+    </div>`);
+  document.getElementById('reviewDoneBtn').addEventListener('click', ()=> openListingDetail(item));
+}
+
+// ---------- REVIEW WHITELIST (admin) ----------
+document.getElementById('reviewAdminLink').addEventListener('click', e=>{
+  e.preventDefault();
+  if(isAdmin) renderReviewAdminOverlay();
+});
+
+function renderReviewAdminOverlay(){
+  const options = listings.map(l=>
+    `<option value="${l.id}" data-title="${l.title.replace(/"/g,'&quot;')}">${l.title} (${l.category})</option>`
+  ).join('');
+  const rows = whitelist.map(w=>`
+    <div class="wl-row">
+      <div class="wl-info">
+        <div class="wl-item">${w.listingTitle}</div>
+        <div class="wl-email">${w.email}</div>
+      </div>
+      <span class="tag">${w.reviewed ? 'Reviewed' : 'Pending'}</span>
+      <button type="button" class="wl-remove" data-wl-del="${w.id}" aria-label="Remove entry">&times;</button>
+    </div>`).join('');
+  openOverlay(`
+    <div class="product" style="grid-template-columns:1fr; max-width:640px; margin:0 auto;">
+      <div>
+        <span class="eyebrow">Admin</span>
+        <h2>Review whitelist</h2>
+        <p class="product-note" style="max-width:none;">Add a customer's email against the item they bought so they can leave a review. Once they submit, the entry flips to Reviewed and can't be reused. Re-adding the same email + item resets it back to Pending.</p>
+        <form id="wlForm">
+          <div class="field-group">
+            <label class="field-label" for="wlListing">Item purchased</label>
+            <select class="field-input" id="wlListing">${options || '<option disabled>No listings yet</option>'}</select>
+          </div>
+          <div class="field-group">
+            <label class="field-label" for="wlEmail">Customer email</label>
+            <input class="field-input" type="email" id="wlEmail" autocomplete="off" required>
+          </div>
+          <div class="form-error" id="wlError"></div>
+          <button type="submit" class="btn-add" id="wlSubmitBtn">Add to whitelist</button>
+        </form>
+        <div class="wl-list">${rows || '<p class="listing-desc">No whitelist entries yet.</p>'}</div>
+      </div>
+    </div>`, {view:'reviewAdmin'});
+  document.getElementById('wlForm').addEventListener('submit', handleAddWhitelist);
+  overlayBody.querySelectorAll('[data-wl-del]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      if(confirm('Remove this whitelist entry?')) deleteDoc(doc(db, 'reviewWhitelist', btn.dataset.wlDel));
+    });
+  });
+}
+
+async function handleAddWhitelist(e){
+  e.preventDefault();
+  const errEl = document.getElementById('wlError');
+  const btn = document.getElementById('wlSubmitBtn');
+  errEl.textContent = '';
+  const select = document.getElementById('wlListing');
+  const listingId = select.value;
+  const listingTitle = select.selectedOptions[0] ? select.selectedOptions[0].dataset.title : '';
+  const email = document.getElementById('wlEmail').value.trim();
+  if(!listingId || !email || !email.includes('@')){
+    errEl.textContent = 'Choose an item and enter a valid email.';
+    return;
+  }
+  btn.disabled = true; btn.textContent = 'Adding…';
+  try{
+    await setDoc(doc(db, 'reviewWhitelist', whitelistDocId(listingId, email)), {
+      listingId, listingTitle, email: normalizeEmail(email), createdAt: serverTimestamp(), reviewed:false
+    });
+    document.getElementById('wlEmail').value = '';
+  }catch(err){
+    console.error('Add whitelist error:', err.code || err.message || err);
+    errEl.textContent = 'Something went wrong &mdash; please try again.';
+  }
+  btn.disabled = false; btn.textContent = 'Add to whitelist';
 }
 
 // Output resolution matches the listing card's photo frame (4:3), so the
