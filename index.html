@@ -412,6 +412,16 @@
   .field-group{margin-bottom:24px;}
   .form-error{color:#a33; font-size:0.82rem; margin-bottom:14px; min-height:1.2em;}
 
+  .pass-wrap{position:relative;}
+  .pass-wrap .field-input{padding-right:64px;}
+  .pass-toggle{
+    position:absolute; top:0; right:0; height:100%; padding:0 14px;
+    background:none; border:none; color:var(--muted); cursor:pointer;
+    font-size:0.68rem; letter-spacing:0.1em; text-transform:uppercase;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .pass-toggle:hover{color:var(--ink);}
+
   .crop-viewport{
     position:relative; width:100%; aspect-ratio:4/3; overflow:hidden;
     background:var(--paper-2); border:1px solid var(--line); cursor:grab; touch-action:none;
@@ -591,7 +601,10 @@
       </div>
       <div class="field-group">
         <label class="field-label" for="adminPass">Password</label>
-        <input class="field-input" type="password" id="adminPass" autocomplete="current-password">
+        <div class="pass-wrap">
+          <input class="field-input" type="password" id="adminPass" autocomplete="current-password">
+          <button type="button" class="pass-toggle mono" id="adminPassToggle" aria-label="Show password">Show</button>
+        </div>
       </div>
       <div class="form-error" id="adminError"></div>
       <button type="submit" class="btn btn-solid">Log in</button>
@@ -1018,6 +1031,14 @@ document.getElementById('showAdminForm').addEventListener('click', ()=>{
 document.getElementById('backToChoice').addEventListener('click', ()=>{
   document.getElementById('adminForm').style.display = 'none';
   document.getElementById('splashChoice').style.display = 'block';
+});
+document.getElementById('adminPassToggle').addEventListener('click', ()=>{
+  const input = document.getElementById('adminPass');
+  const btn = document.getElementById('adminPassToggle');
+  const showing = input.type === 'text';
+  input.type = showing ? 'password' : 'text';
+  btn.textContent = showing ? 'Show' : 'Hide';
+  btn.setAttribute('aria-label', showing ? 'Show password' : 'Hide password');
 });
 document.getElementById('adminForm').addEventListener('submit', async e=>{
   e.preventDefault();
