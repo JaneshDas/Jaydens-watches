@@ -298,6 +298,15 @@
   .product .eyebrow{display:block; margin-bottom:16px;}
   .product h2{font-size:clamp(1.9rem,3.2vw,2.7rem); margin-bottom:10px;}
   .product-sub{color:var(--blue); font-style:italic; margin-bottom:34px; line-height:1.5;}
+  .product-sub p{margin:0 0 10px;}
+  .product-sub p:last-child{margin-bottom:0;}
+  .product-sub h3, .product-sub h4, .product-sub h5{
+    font-style:normal; color:var(--ink); font-weight:600; margin:18px 0 8px; line-height:1.3;
+  }
+  .product-sub h3:first-child, .product-sub h4:first-child, .product-sub h5:first-child{margin-top:0;}
+  .product-sub h3{font-size:1.25rem;} .product-sub h4{font-size:1.08rem;} .product-sub h5{font-size:0.96rem;}
+  .product-sub ul{margin:0 0 10px; padding-left:20px; font-style:normal;}
+  .product-sub strong{font-style:normal; font-weight:600;}
 
   .opt-group{margin-bottom:28px;}
   .opt-label{
@@ -398,6 +407,14 @@
   .listing-delete:hover{border-color:#a33; color:#a33;}
   .listing-edit:hover{border-color:var(--blue); color:var(--blue);}
   .listing-desc{color:var(--muted); font-size:0.85rem; line-height:1.6; margin:12px 0 0;}
+  .listing-desc p{margin:0 0 8px;}
+  .listing-desc p:last-child{margin-bottom:0;}
+  .listing-desc h3, .listing-desc h4, .listing-desc h5{
+    color:var(--ink); font-weight:600; margin:12px 0 5px; line-height:1.3; font-size:0.92rem;
+  }
+  .listing-desc h3:first-child, .listing-desc h4:first-child, .listing-desc h5:first-child{margin-top:0;}
+  .listing-desc ul{margin:0 0 8px; padding-left:16px;}
+  .listing-desc strong{color:var(--ink); font-weight:600;}
   .admin-add-wrap{margin-bottom:32px;}
 
   .field-label{
@@ -673,6 +690,46 @@ function whitelistDocId(listingId, email){ return `${listingId}__${normalizeEmai
 // could plant a script in their review that runs for every visitor.
 function escapeHtml(str){
   return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+// Small, dependency-free markdown for listing descriptions: headings (#/##/###),
+// **bold**, *italic*/_italic_, and -/* bullet lists. Escapes first so raw HTML
+// in a description can't break the page.
+function renderMarkdown(text){
+  function inline(str){
+    return str
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.+?)\*/g, '<em>$1</em>')
+      .replace(/_(.+?)_/g, '<em>$1</em>');
+  }
+  const lines = escapeHtml(text || '').split(/\r?\n/);
+  let html = '', listOpen = false, paraLines = [];
+  function flushPara(){
+    if(paraLines.length){ html += `<p>${paraLines.join('<br>')}</p>`; paraLines = []; }
+  }
+  function closeList(){
+    if(listOpen){ html += '</ul>'; listOpen = false; }
+  }
+  lines.forEach(line=>{
+    const heading = line.match(/^(#{1,3})\s+(.*)$/);
+    const bullet = line.match(/^[-*]\s+(.*)$/);
+    if(heading){
+      flushPara(); closeList();
+      const tag = ['h3','h4','h5'][heading[1].length - 1];
+      html += `<${tag}>${inline(heading[2])}</${tag}>`;
+    }else if(bullet){
+      flushPara();
+      if(!listOpen){ html += '<ul>'; listOpen = true; }
+      html += `<li>${inline(bullet[1])}</li>`;
+    }else if(line.trim() === ''){
+      flushPara(); closeList();
+    }else{
+      closeList();
+      paraLines.push(inline(line));
+    }
+  });
+  flushPara(); closeList();
+  return html;
 }
 
 function reviewStatsFor(listingId){
@@ -1131,7 +1188,7 @@ function listingCardHtml(item){
     ${listingActionsHtml(item)}
     <img class="strap-photo" src="${item.image}" alt="${item.title}">
     <div class="strap-name">${item.title}</div>
-    <p class="listing-desc">${item.description}</p>
+    <div class="listing-desc">${renderMarkdown(item.description)}</div>
     <div class="strap-bottom">
       <span class="strap-price">$${item.price}</span>
       ${sold ? `<span class="tag">Sold</span>` : `<button class="add-btn" data-listing="${item.id}">Add</button>`}
@@ -1226,7 +1283,7 @@ function renderListingDetail(item, gallery){
       <div class="watch-detail-info">
         <span class="eyebrow">Watch</span>
         <h2>${item.title}</h2>
-        <div class="product-sub">${item.description}</div>
+        <div class="product-sub">${renderMarkdown(item.description)}</div>
         <div class="product-price">$${item.price}</div>
         <p class="product-note">Assembled to order. No online checkout &mdash; add to your cart and send us an enquiry to confirm details, final price, and delivery.</p>
         <button class="btn-add" data-addlisting>Add to cart</button>
@@ -1713,6 +1770,7 @@ function listingFormFieldsHtml(category, item){
     <div class="field-group">
       <label class="field-label" for="listingDesc">Description</label>
       <textarea class="field-input" id="listingDesc" rows="4" required>${desc}</textarea>
+      <p class="crop-hint">Supports markdown: ## heading, **bold**, *italic*, and - bullet lists.</p>
     </div>
     <div class="field-group">
       <label class="field-label" for="listingPrice">Price (USD)</label>
