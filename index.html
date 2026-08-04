@@ -153,11 +153,13 @@
     font-family:'Space Mono',monospace; font-size:0.7rem; letter-spacing:0.1em; text-transform:uppercase;
     padding:7px 14px; border-radius:20px;
   }
-  .watch-highlight-photo .listing-delete{
-    top:16px; right:16px; width:30px; height:30px;
+  .watch-highlight-photo .listing-actions{top:16px; right:16px;}
+  .watch-highlight-photo .listing-actions button{
+    width:30px; height:30px;
     border:none; border-radius:50%; background:rgba(0,0,0,0.55); color:#fff; font-size:1rem;
   }
   .watch-highlight-photo .listing-delete:hover{background:rgba(163,51,51,0.85); color:#fff;}
+  .watch-highlight-photo .listing-edit:hover{background:rgba(63,109,163,0.85); color:#fff;}
   .watch-highlight-footer{display:flex; align-items:center; justify-content:space-between; gap:16px; padding:22px 26px;}
   .watch-highlight-title{font-size:1.15rem; font-weight:600; color:var(--ink);}
   .watch-buy-btn{
@@ -387,13 +389,14 @@
 
   /* ---------- ADMIN / LISTINGS ---------- */
   .listing-card{position:relative;}
-  .listing-delete{
-    position:absolute; top:14px; right:14px; z-index:2;
+  .listing-actions{position:absolute; top:14px; right:14px; z-index:2; display:flex; gap:8px;}
+  .listing-actions button{
     width:28px; height:28px; border:1px solid var(--line); background:var(--paper);
     color:var(--muted); cursor:pointer; font-size:1rem; line-height:1;
     display:flex; align-items:center; justify-content:center; transition:all 0.15s ease;
   }
   .listing-delete:hover{border-color:#a33; color:#a33;}
+  .listing-edit:hover{border-color:var(--blue); color:var(--blue);}
   .listing-desc{color:var(--muted); font-size:0.85rem; line-height:1.6; margin:12px 0 0;}
   .admin-add-wrap{margin-bottom:32px;}
 
@@ -1092,15 +1095,25 @@ function stopWhitelistListener(){
   whitelist = [];
 }
 
-function listingCardHtml(item){
+function listingActionsHtml(item){
+  if(!isAdmin) return '';
   return `
-    ${isAdmin ? `<button class="listing-delete" data-del="${item.id}" aria-label="Delete listing">&times;</button>` : ''}
+    <div class="listing-actions">
+      <button class="listing-edit" data-edit="${item.id}" aria-label="Edit listing">&#9998;</button>
+      <button class="listing-delete" data-del="${item.id}" aria-label="Delete listing">&times;</button>
+    </div>`;
+}
+
+function listingCardHtml(item){
+  const sold = item.inStock === false;
+  return `
+    ${listingActionsHtml(item)}
     <img class="strap-photo" src="${item.image}" alt="${item.title}">
     <div class="strap-name">${item.title}</div>
     <p class="listing-desc">${item.description}</p>
     <div class="strap-bottom">
       <span class="strap-price">$${item.price}</span>
-      <button class="add-btn" data-listing="${item.id}">Add</button>
+      ${sold ? `<span class="tag">Sold</span>` : `<button class="add-btn" data-listing="${item.id}">Add</button>`}
     </div>`;
 }
 
@@ -1110,7 +1123,7 @@ function watchListingCardHtml(item){
     <div class="watch-highlight-photo">
       <img src="${item.image}" alt="${item.title}">
       <span class="watch-badge">${badge}</span>
-      ${isAdmin ? `<button class="listing-delete" data-del="${item.id}" aria-label="Delete listing">&times;</button>` : ''}
+      ${listingActionsHtml(item)}
     </div>
     <div class="watch-highlight-footer">
       <span class="watch-highlight-title">${item.title}</span>
@@ -1136,6 +1149,12 @@ function renderWatchListings(){
 }
 
 function handleListingGridClick(e){
+  const editBtn = e.target.closest('[data-edit]');
+  if(editBtn){
+    const item = listings.find(l=>l.id===editBtn.dataset.edit);
+    if(item) openEditListingForm(item);
+    return;
+  }
   const del = e.target.closest('[data-del]');
   if(del){
     if(confirm('Delete this listing?')) deleteDoc(doc(db,'listings',del.dataset.del));
@@ -1508,22 +1527,24 @@ function drawCrop(){
   cropCtx.drawImage(cropImg, cropOffsetX, cropOffsetY, cropImg.width * cropScale, cropImg.height * cropScale);
 }
 
+function setCropImageFromSrc(src){
+  const img = new Image();
+  img.onload = ()=>{
+    cropImg = img;
+    cropMinScale = Math.max(CROP_W / img.width, CROP_H / img.height);
+    cropScale = cropMinScale;
+    cropOffsetX = (CROP_W - img.width * cropScale) / 2;
+    cropOffsetY = (CROP_H - img.height * cropScale) / 2;
+    document.getElementById('cropZoom').value = 1;
+    document.getElementById('cropGroup').style.display = 'block';
+    drawCrop();
+  };
+  img.src = src;
+}
+
 function loadCropImage(file){
   const reader = new FileReader();
-  reader.onload = ()=>{
-    const img = new Image();
-    img.onload = ()=>{
-      cropImg = img;
-      cropMinScale = Math.max(CROP_W / img.width, CROP_H / img.height);
-      cropScale = cropMinScale;
-      cropOffsetX = (CROP_W - img.width * cropScale) / 2;
-      cropOffsetY = (CROP_H - img.height * cropScale) / 2;
-      document.getElementById('cropZoom').value = 1;
-      document.getElementById('cropGroup').style.display = 'block';
-      drawCrop();
-    };
-    img.src = reader.result;
-  };
+  reader.onload = ()=> setCropImageFromSrc(reader.result);
   reader.readAsDataURL(file);
 }
 
@@ -1624,8 +1645,65 @@ function wireExtraImages(){
 }
 
 let pendingListingCategory = 'watch';
+let editingListingId = null;
+
+function listingFormFieldsHtml(category, item){
+  const title = item ? escapeHtml(item.title) : '';
+  const desc = item ? escapeHtml(item.description) : '';
+  const price = item ? item.price : '';
+  const statusField = category === 'watch' ? `
+          <div class="field-group">
+            <label class="field-label" for="listingStatus">Status</label>
+            <select class="field-input" id="listingStatus">
+              <option value="in_stock" ${!item || item.status !== 'waitlist' ? 'selected' : ''}>In Stock</option>
+              <option value="waitlist" ${item && item.status === 'waitlist' ? 'selected' : ''}>Waitlist</option>
+            </select>
+          </div>` : `
+          <div class="field-group">
+            <label class="field-label" for="listingStock">Availability</label>
+            <select class="field-input" id="listingStock">
+              <option value="yes" ${!item || item.inStock !== false ? 'selected' : ''}>In stock</option>
+              <option value="no" ${item && item.inStock === false ? 'selected' : ''}>Sold / out of stock</option>
+            </select>
+          </div>`;
+  return `
+    <div class="field-group">
+      <label class="field-label" for="listingImage">Cover photo${item ? ' (optional — leave blank to keep the current photo)' : ''}</label>
+      <input class="field-input" type="file" id="listingImage" accept="image/*" ${item ? '' : 'required'}>
+    </div>
+    <div class="field-group" id="cropGroup" style="display:none;">
+      <label class="field-label">Crop cover photo</label>
+      <div class="crop-viewport" id="cropViewport"><canvas id="cropCanvas"></canvas></div>
+      <input type="range" class="crop-zoom" id="cropZoom" min="1" max="3" step="0.01" value="1">
+      <p class="crop-hint">Drag to reposition, slide to zoom — this is exactly how the photo will appear in the listing.</p>
+    </div>
+    ${category === 'watch' ? `
+    <div class="field-group">
+      <label class="field-label" for="listingExtraImages">Extra photos (optional, up to ${MAX_EXTRA_IMAGES})</label>
+      <input class="field-input" type="file" id="listingExtraImages" accept="image/*" multiple>
+      <div class="extra-thumbs" id="extraThumbs"></div>
+      <p class="crop-hint">Shown when a customer clicks into this listing — not cropped, so any shape works.</p>
+    </div>` : ''}
+    ${statusField}
+    <div class="field-group">
+      <label class="field-label" for="listingTitle">Title</label>
+      <input class="field-input" type="text" id="listingTitle" value="${title}" required>
+    </div>
+    <div class="field-group">
+      <label class="field-label" for="listingDesc">Description</label>
+      <textarea class="field-input" id="listingDesc" rows="4" required>${desc}</textarea>
+    </div>
+    <div class="field-group">
+      <label class="field-label" for="listingPrice">Price (USD)</label>
+      <input class="field-input" type="number" id="listingPrice" min="0" step="0.01" value="${price}" required>
+    </div>
+    <div class="form-error" id="listingError"></div>
+    <button type="submit" class="btn-add" id="listingSubmitBtn">${item ? 'Save changes' : 'Publish listing'}</button>`;
+}
+
 function openAddListingForm(category){
   pendingListingCategory = category;
+  editingListingId = null;
   cropImg = null;
   extraImages = [];
   openOverlay(`
@@ -1633,61 +1711,43 @@ function openAddListingForm(category){
       <div>
         <span class="eyebrow">Admin</span>
         <h2>New ${category === 'watch' ? 'watch' : 'strap'} listing</h2>
-        <form id="listingForm">
-          <div class="field-group">
-            <label class="field-label" for="listingImage">Cover photo</label>
-            <input class="field-input" type="file" id="listingImage" accept="image/*" required>
-          </div>
-          <div class="field-group" id="cropGroup" style="display:none;">
-            <label class="field-label">Crop cover photo</label>
-            <div class="crop-viewport" id="cropViewport"><canvas id="cropCanvas"></canvas></div>
-            <input type="range" class="crop-zoom" id="cropZoom" min="1" max="3" step="0.01" value="1">
-            <p class="crop-hint">Drag to reposition, slide to zoom — this is exactly how the photo will appear in the listing.</p>
-          </div>
-          ${category === 'watch' ? `
-          <div class="field-group">
-            <label class="field-label" for="listingExtraImages">Extra photos (optional, up to ${MAX_EXTRA_IMAGES})</label>
-            <input class="field-input" type="file" id="listingExtraImages" accept="image/*" multiple>
-            <div class="extra-thumbs" id="extraThumbs"></div>
-            <p class="crop-hint">Shown when a customer clicks into this listing — not cropped, so any shape works.</p>
-          </div>
-          <div class="field-group">
-            <label class="field-label" for="listingStatus">Status</label>
-            <select class="field-input" id="listingStatus">
-              <option value="in_stock">In Stock</option>
-              <option value="waitlist">Waitlist</option>
-            </select>
-          </div>` : ''}
-          <div class="field-group">
-            <label class="field-label" for="listingTitle">Title</label>
-            <input class="field-input" type="text" id="listingTitle" required>
-          </div>
-          <div class="field-group">
-            <label class="field-label" for="listingDesc">Description</label>
-            <textarea class="field-input" id="listingDesc" rows="4" required></textarea>
-          </div>
-          <div class="field-group">
-            <label class="field-label" for="listingPrice">Price (USD)</label>
-            <input class="field-input" type="number" id="listingPrice" min="0" step="0.01" required>
-          </div>
-          <div class="form-error" id="listingError"></div>
-          <button type="submit" class="btn-add" id="listingSubmitBtn">Publish listing</button>
-        </form>
+        <form id="listingForm">${listingFormFieldsHtml(category, null)}</form>
       </div>
     </div>`);
-  document.getElementById('listingForm').addEventListener('submit', handleAddListing);
+  document.getElementById('listingForm').addEventListener('submit', handleListingFormSubmit);
   wireCropEditor();
   wireExtraImages();
 }
 document.getElementById('openAddListingWatch').addEventListener('click', ()=>openAddListingForm('watch'));
 document.getElementById('openAddListingStrap').addEventListener('click', ()=>openAddListingForm('strap'));
 
-async function handleAddListing(e){
+function openEditListingForm(item){
+  pendingListingCategory = item.category;
+  editingListingId = item.id;
+  cropImg = null;
+  extraImages = [...(item.images || [])];
+  openOverlay(`
+    <div class="product" style="grid-template-columns:1fr; max-width:520px; margin:0 auto;">
+      <div>
+        <span class="eyebrow">Admin</span>
+        <h2>Edit ${item.category === 'watch' ? 'watch' : 'strap'} listing</h2>
+        <form id="listingForm">${listingFormFieldsHtml(item.category, item)}</form>
+      </div>
+    </div>`);
+  document.getElementById('listingForm').addEventListener('submit', handleListingFormSubmit);
+  wireCropEditor();
+  wireExtraImages();
+  renderExtraThumbs();
+  setCropImageFromSrc(item.image);
+}
+
+async function handleListingFormSubmit(e){
   e.preventDefault();
   const errorEl = document.getElementById('listingError');
   const btn = document.getElementById('listingSubmitBtn');
   errorEl.textContent = '';
   const category = pendingListingCategory;
+  const isEdit = !!editingListingId;
   const title = document.getElementById('listingTitle').value.trim();
   const description = document.getElementById('listingDesc').value.trim();
   const price = parseFloat(document.getElementById('listingPrice').value);
@@ -1695,19 +1755,28 @@ async function handleAddListing(e){
     errorEl.textContent = 'Please fill in every field.';
     return;
   }
-  btn.disabled = true; btn.textContent = 'Publishing…';
+  btn.disabled = true; btn.textContent = isEdit ? 'Saving…' : 'Publishing…';
   try{
     const image = cropCanvas.toDataURL('image/jpeg', 0.72);
     const images = category === 'watch' ? extraImages : [];
     const totalSize = image.length + images.reduce((sum,img)=>sum+img.length, 0);
     if(totalSize > 950000) throw new Error('Photos are too large together — remove one or use smaller photos.');
-    const docData = { category, title, description, price, image, images, createdAt: serverTimestamp() };
-    if(category === 'watch') docData.status = document.getElementById('listingStatus').value;
-    await addDoc(listingsCol, docData);
+    const docData = { category, title, description, price, image, images };
+    if(category === 'watch'){
+      docData.status = document.getElementById('listingStatus').value;
+    }else{
+      docData.inStock = document.getElementById('listingStock').value !== 'no';
+    }
+    if(isEdit){
+      await updateDoc(doc(db, 'listings', editingListingId), docData);
+    }else{
+      docData.createdAt = serverTimestamp();
+      await addDoc(listingsCol, docData);
+    }
     closeOverlay();
   }catch(err){
-    errorEl.textContent = err.message || 'Something went wrong publishing this listing.';
-    btn.disabled = false; btn.textContent = 'Publish listing';
+    errorEl.textContent = err.message || 'Something went wrong saving this listing.';
+    btn.disabled = false; btn.textContent = isEdit ? 'Save changes' : 'Publish listing';
   }
 }
 </script>
